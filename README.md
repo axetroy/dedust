@@ -147,7 +147,11 @@ Supported features:
 
 ### Using `dedust.rules`
 
-Create a `dedust.rules` file in your project root to define reusable cleanup rules:
+Create a `dedust.rules` file in your project root to define reusable cleanup rules. 
+
+See [dedust.rules](./dedust.rules) for a complete example configuration file.
+
+Example configuration:
 
 ```text
 # dedust.rules - Cleanup configuration for this project
