@@ -24,8 +24,8 @@ import { evaluate, executeRules, Evaluator } from './evaluator.js';
  * ```
  */
 export function parseRules(input) {
-const tokens = tokenize(input);
-return parse(tokens);
+	const tokens = tokenize(input);
+	return parse(tokens);
 }
 
 /**
@@ -43,8 +43,8 @@ return parse(tokens);
  * ```
  */
 export async function findTargets(rulesOrDsl, baseDir) {
-const rules = typeof rulesOrDsl === 'string' ? parseRules(rulesOrDsl) : rulesOrDsl;
-return evaluate(rules, baseDir, true);
+	const rules = typeof rulesOrDsl === 'string' ? parseRules(rulesOrDsl) : rulesOrDsl;
+	return evaluate(rules, baseDir, true);
 }
 
 /**
@@ -67,8 +67,8 @@ return evaluate(rules, baseDir, true);
  * ```
  */
 export async function executeCleanup(rulesOrDsl, baseDir) {
-const rules = typeof rulesOrDsl === 'string' ? parseRules(rulesOrDsl) : rulesOrDsl;
-return executeRules(rules, baseDir);
+	const rules = typeof rulesOrDsl === 'string' ? parseRules(rulesOrDsl) : rulesOrDsl;
+	return executeRules(rules, baseDir);
 }
 
 // Export everything as default

@@ -190,11 +190,22 @@ export class Evaluator {
 			if (!condition.left || !condition.right) {
 				return false;
 			}
+			
+			// Left side is always a Predicate
 			const leftResult = await this.evaluatePredicate(condition.left, currentDir);
 			if (!leftResult) {
 				return false;
 			}
-			return this.evaluatePredicate(condition.right, currentDir);
+			
+			// Right side can be either a Predicate or a nested Condition (for chained ANDs)
+			// Check if it's a Condition by looking at its structure
+			if (condition.right.type === 'and' || condition.right.type === 'predicate') {
+				// It's a nested Condition
+				return this.evaluateCondition(/** @type {Condition} */ (/** @type {unknown} */ (condition.right)), currentDir);
+			} else {
+				// It's a Predicate
+				return this.evaluatePredicate(condition.right, currentDir);
+			}
 		}
 
 		return false;

@@ -116,10 +116,7 @@ export class Tokenizer {
 		while (this.peek() !== null) {
 			const char = this.peek();
 			// Identifier can contain letters, numbers, underscore, dot, hyphen, asterisk, slash
-			if (
-				/[a-zA-Z0-9_.\-*\/]/.test(char) ||
-				(char === '*' && this.peek() === '*')
-			) {
+			if (/[a-zA-Z0-9_.\-*\/]/.test(char)) {
 				value += this.advance();
 			} else {
 				break;

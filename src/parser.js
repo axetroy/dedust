@@ -143,51 +143,43 @@ export class Parser {
 	 * @returns {Condition}
 	 */
 	parseCondition() {
-		const left = this.parsePredicate();
+		const predicates = [this.parsePredicate()];
 
-		// Check for 'and'
-		if (this.match('and')) {
+		// Collect all 'and' chained predicates
+		while (this.match('and')) {
 			this.advance();
-			const right = this.parsePredicate();
-
-			// Build the condition tree
-			/** @type {Condition} */
-			let condition = {
-				type: 'and',
-				left,
-				right,
-				predicate: null,
-			};
-
-			// Handle multiple 'and' chained predicates
-			while (this.match('and')) {
-				this.advance();
-				const nextPredicate = this.parsePredicate();
-				condition = {
-					type: 'and',
-					left: {
-						type: 'exists',
-						location: 'here',
-						pattern: null,
-						negated: null,
-					},
-					right: nextPredicate,
-					predicate: null,
-				};
-				// Wrap previous condition as the left side
-				condition.left = /** @type {Predicate} */ (/** @type {unknown} */ (condition));
-			}
-
-			return condition;
+			predicates.push(this.parsePredicate());
 		}
 
 		// Single predicate
-		return {
-			type: 'predicate',
-			left: null,
-			right: null,
-			predicate: left,
+		if (predicates.length === 1) {
+			return {
+				type: 'predicate',
+				left: null,
+				right: null,
+				predicate: predicates[0],
+			};
+		}
+
+		// Multiple predicates - chain them with 'and'
+		// Build from right to left: (a AND (b AND c))
+		let condition = {
+			type: 'and',
+			left: predicates[predicates.length - 2],
+			right: predicates[predicates.length - 1],
+			predicate: null,
 		};
+
+		for (let i = predicates.length - 3; i >= 0; i--) {
+			condition = {
+				type: 'and',
+				left: predicates[i],
+				right: /** @type {Predicate} */ (/** @type {unknown} */ (condition)),
+				predicate: null,
+			};
+		}
+
+		return condition;
 	}
 
 	/**
