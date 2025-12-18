@@ -57,5 +57,7 @@
         "type": "git",
         "url": "git+https://github.com/axetroy/dust.git"
     },
-    "dependencies": {}
+    "dependencies": {
+        "glob": "^13.0.0"
+    }
 }
