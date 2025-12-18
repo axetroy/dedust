@@ -1,0 +1,18 @@
+# Dust Rules Example
+
+# Rust projects
+delete target when exists Cargo.toml
+
+# Rust workspace sub-crates
+delete target when parent exists Cargo.toml
+
+# Node.js projects
+delete node_modules when exists package.json
+
+# Python projects
+delete .venv when exists pyproject.toml
+delete __pycache__
+
+# General cleanup
+delete *.log
+delete **/*.tmp when parents exists .git
