@@ -370,48 +370,48 @@ delete **/*.log when parents exists .git`;
 });
 
 test("Evaluator - pattern with whitespace", async () => {
-cleanup();
-createStructure({
-"My Documents": {
-"file.txt": "content",
-},
-"Program Files": {
-"app.exe": "binary",
-},
-"NoSpaces": {
-"file.txt": "content",
-},
-});
+	cleanup();
+	createStructure({
+		"My Documents": {
+			"file.txt": "content",
+		},
+		"Program Files": {
+			"app.exe": "binary",
+		},
+		NoSpaces: {
+			"file.txt": "content",
+		},
+	});
 
-const dsl = 'delete "My Documents"';
-const targets = await findTargets(dsl, testDir);
+	const dsl = 'delete "My Documents"';
+	const targets = await findTargets(dsl, testDir);
 
-assert.strictEqual(targets.length, 1);
-assert.ok(targets[0].endsWith("My Documents"));
+	assert.strictEqual(targets.length, 1);
+	assert.ok(targets[0].endsWith("My Documents"));
 
-cleanup();
+	cleanup();
 });
 
 test("Evaluator - condition with whitespace in pattern", async () => {
-cleanup();
-createStructure({
-project: {
-"package.json": "{}",
-"node_modules": {},
-},
-"My Project": {
-"package.json": "{}",
-"node_modules": {},
-},
-});
+	cleanup();
+	createStructure({
+		project: {
+			"package.json": "{}",
+			node_modules: {},
+		},
+		"My Project": {
+			"package.json": "{}",
+			node_modules: {},
+		},
+	});
 
-const dsl = 'delete node_modules when exists "package.json"';
-const targets = await findTargets(dsl, testDir);
+	const dsl = 'delete node_modules when exists "package.json"';
+	const targets = await findTargets(dsl, testDir);
 
-// Should find both node_modules directories
-assert.ok(targets.length >= 2);
-assert.ok(targets.some((t) => t.includes("project") && t.endsWith("node_modules")));
-assert.ok(targets.some((t) => t.includes("My Project") && t.endsWith("node_modules")));
+	// Should find both node_modules directories
+	assert.ok(targets.length >= 2);
+	assert.ok(targets.some((t) => t.includes("project") && t.endsWith("node_modules")));
+	assert.ok(targets.some((t) => t.includes("My Project") && t.endsWith("node_modules")));
 
-cleanup();
+	cleanup();
 });

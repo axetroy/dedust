@@ -135,54 +135,54 @@ test("Tokenizer - line and column tracking", () => {
 });
 
 test("Tokenizer - quoted string with double quotes", () => {
-const input = 'delete "My Documents"';
-const tokens = tokenize(input);
+	const input = 'delete "My Documents"';
+	const tokens = tokenize(input);
 
-assert.strictEqual(tokens.length, 3); // delete, "My Documents", eof
-assert.strictEqual(tokens[0].value, "delete");
-assert.strictEqual(tokens[1].type, "string");
-assert.strictEqual(tokens[1].value, "My Documents");
+	assert.strictEqual(tokens.length, 3); // delete, "My Documents", eof
+	assert.strictEqual(tokens[0].value, "delete");
+	assert.strictEqual(tokens[1].type, "string");
+	assert.strictEqual(tokens[1].value, "My Documents");
 });
 
 test("Tokenizer - quoted string with single quotes", () => {
-const input = "delete 'Program Files'";
-const tokens = tokenize(input);
+	const input = "delete 'Program Files'";
+	const tokens = tokenize(input);
 
-assert.strictEqual(tokens.length, 3); // delete, 'Program Files', eof
-assert.strictEqual(tokens[0].value, "delete");
-assert.strictEqual(tokens[1].type, "string");
-assert.strictEqual(tokens[1].value, "Program Files");
+	assert.strictEqual(tokens.length, 3); // delete, 'Program Files', eof
+	assert.strictEqual(tokens[0].value, "delete");
+	assert.strictEqual(tokens[1].type, "string");
+	assert.strictEqual(tokens[1].value, "Program Files");
 });
 
 test("Tokenizer - quoted string with escape sequences", () => {
-const input = 'delete "file\\twith\\ttabs"';
-const tokens = tokenize(input);
+	const input = 'delete "file\\twith\\ttabs"';
+	const tokens = tokenize(input);
 
-assert.strictEqual(tokens[1].type, "string");
-assert.strictEqual(tokens[1].value, "file\twith\ttabs");
+	assert.strictEqual(tokens[1].type, "string");
+	assert.strictEqual(tokens[1].value, "file\twith\ttabs");
 });
 
 test("Tokenizer - quoted string with escaped quotes", () => {
-const input = 'delete "file\\"with\\"quotes"';
-const tokens = tokenize(input);
+	const input = 'delete "file\\"with\\"quotes"';
+	const tokens = tokenize(input);
 
-assert.strictEqual(tokens[1].type, "string");
-assert.strictEqual(tokens[1].value, 'file"with"quotes');
+	assert.strictEqual(tokens[1].type, "string");
+	assert.strictEqual(tokens[1].value, 'file"with"quotes');
 });
 
 test("Tokenizer - condition with quoted pattern", () => {
-const input = 'delete target when exists "package.json"';
-const tokens = tokenize(input);
+	const input = 'delete target when exists "package.json"';
+	const tokens = tokenize(input);
 
-const values = tokens.slice(0, -1).map((t) => t.value);
-assert.deepStrictEqual(values, ["delete", "target", "when", "exists", "package.json"]);
-assert.strictEqual(tokens[4].type, "string");
+	const values = tokens.slice(0, -1).map((t) => t.value);
+	assert.deepStrictEqual(values, ["delete", "target", "when", "exists", "package.json"]);
+	assert.strictEqual(tokens[4].type, "string");
 });
 
 test("Tokenizer - quoted pattern with glob", () => {
-const input = 'delete "*.log files"';
-const tokens = tokenize(input);
+	const input = 'delete "*.log files"';
+	const tokens = tokenize(input);
 
-assert.strictEqual(tokens[1].type, "string");
-assert.strictEqual(tokens[1].value, "*.log files");
+	assert.strictEqual(tokens[1].type, "string");
+	assert.strictEqual(tokens[1].value, "*.log files");
 });

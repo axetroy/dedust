@@ -195,29 +195,29 @@ test("Parser - error on invalid action", () => {
 });
 
 test("Parser - quoted string as target", () => {
-const input = 'delete "My Documents"';
-const tokens = tokenize(input);
-const rules = parse(tokens);
+	const input = 'delete "My Documents"';
+	const tokens = tokenize(input);
+	const rules = parse(tokens);
 
-assert.strictEqual(rules.length, 1);
-assert.strictEqual(rules[0].action, "delete");
-assert.strictEqual(rules[0].target, "My Documents");
-assert.strictEqual(rules[0].condition, null);
+	assert.strictEqual(rules.length, 1);
+	assert.strictEqual(rules[0].action, "delete");
+	assert.strictEqual(rules[0].target, "My Documents");
+	assert.strictEqual(rules[0].condition, null);
 });
 
 test("Parser - quoted string in condition", () => {
-const input = 'delete target when exists "My File.txt"';
-const tokens = tokenize(input);
-const rules = parse(tokens);
+	const input = 'delete target when exists "My File.txt"';
+	const tokens = tokenize(input);
+	const rules = parse(tokens);
 
-assert.strictEqual(rules[0].condition?.predicate?.pattern, "My File.txt");
+	assert.strictEqual(rules[0].condition?.predicate?.pattern, "My File.txt");
 });
 
 test("Parser - both target and pattern quoted", () => {
-const input = 'delete "Program Files" when exists "*.dll"';
-const tokens = tokenize(input);
-const rules = parse(tokens);
+	const input = 'delete "Program Files" when exists "*.dll"';
+	const tokens = tokenize(input);
+	const rules = parse(tokens);
 
-assert.strictEqual(rules[0].target, "Program Files");
-assert.strictEqual(rules[0].condition?.predicate?.pattern, "*.dll");
+	assert.strictEqual(rules[0].target, "Program Files");
+	assert.strictEqual(rules[0].condition?.predicate?.pattern, "*.dll");
 });
