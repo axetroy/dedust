@@ -56,13 +56,13 @@
         "cargo",
         "npm"
     ],
-    "homepage": "https://github.com/axetroy/dust#readme",
+    "homepage": "https://github.com/axetroy/dedust#readme",
     "bugs": {
-        "url": "https://github.com/axetroy/dust/issues"
+        "url": "https://github.com/axetroy/dedust/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/axetroy/dust.git"
+        "url": "git+https://github.com/axetroy/dedust.git"
     },
     "dependencies": {
         "glob": "^13.0.0"
