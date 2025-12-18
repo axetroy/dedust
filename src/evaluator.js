@@ -1,6 +1,7 @@
 import { glob } from "glob";
 import path from "node:path";
 import fs from "node:fs";
+import { EventEmitter } from "node:events";
 
 /**
  * @typedef {import('./parser.js').Rule} Rule
@@ -16,15 +17,45 @@ import fs from "node:fs";
  */
 
 /**
+ * @typedef {Object} FileFoundEvent
+ * @property {string} path - The path of the file found
+ * @property {Rule} rule - The rule that matched this file
+ * @property {string} directory - The directory where the file was found
+ */
+
+/**
+ * @typedef {Object} FileDeletedEvent
+ * @property {string} path - The path of the deleted file
+ * @property {boolean} isDirectory - Whether the deleted item was a directory
+ */
+
+/**
+ * @typedef {Object} ErrorEvent
+ * @property {string} path - The path where the error occurred
+ * @property {Error} error - The error that occurred
+ * @property {string} phase - The phase where error occurred ('evaluation' or 'deletion')
+ */
+
+/**
  * Evaluator for dust DSL rules
  * Evaluates conditions and executes actions
+ * @extends EventEmitter
+ * 
+ * Events:
+ * - 'file:found' - Emitted when a file matching a rule is found
+ * - 'file:deleted' - Emitted when a file is successfully deleted
+ * - 'error' - Emitted when an error occurs during evaluation or deletion
+ * - 'scan:start' - Emitted when scanning starts
+ * - 'scan:directory' - Emitted when scanning a directory
+ * - 'scan:complete' - Emitted when scanning completes
  */
-export class Evaluator {
+export class Evaluator extends EventEmitter {
 	/**
 	 * @param {Rule[]} rules
 	 * @param {string} baseDir - The base directory to start evaluation from
 	 */
 	constructor(rules, baseDir) {
+		super();
 		this.rules = rules;
 		this.baseDir = path.resolve(baseDir);
 	}
@@ -260,6 +291,7 @@ export class Evaluator {
 				const fullPath = path.join(dir, pattern);
 				if (fs.existsSync(fullPath)) {
 					targets.push(fullPath);
+					this.emit("file:found", { path: fullPath, rule, directory: dir });
 				}
 				return targets;
 			}
@@ -271,9 +303,17 @@ export class Evaluator {
 				nodir: false,
 				dot: true,
 			});
-			targets.push(...matches);
-		} catch {
-			// Pattern matching failed, skip
+			for (const match of matches) {
+				targets.push(match);
+				this.emit("file:found", { path: match, rule, directory: dir });
+			}
+		} catch (error) {
+			// Pattern matching failed, emit error event
+			this.emit("error", {
+				path: dir,
+				error: /** @type {Error} */ (error),
+				phase: "evaluation",
+			});
 		}
 
 		return targets;
@@ -287,11 +327,15 @@ export class Evaluator {
 	async evaluate(dryRun = true) {
 		const allTargets = new Set();
 
+		this.emit("scan:start", { baseDir: this.baseDir, rulesCount: this.rules.length });
+
 		// Get all directories to evaluate
 		const directories = this.getAllDirectories(this.baseDir);
 
 		// For each directory, check all rules
 		for (const dir of directories) {
+			this.emit("scan:directory", { directory: dir });
+			
 			for (const rule of this.rules) {
 				if (rule.action === "delete") {
 					const targets = await this.findTargets(rule, dir);
@@ -302,7 +346,14 @@ export class Evaluator {
 			}
 		}
 
-		return Array.from(allTargets);
+		const targetsList = Array.from(allTargets);
+		this.emit("scan:complete", { 
+			baseDir: this.baseDir, 
+			filesFound: targetsList.length,
+			files: targetsList 
+		});
+
+		return targetsList;
 	}
 
 	/**
@@ -318,16 +369,23 @@ export class Evaluator {
 			try {
 				// Check if it's a directory or file
 				const stats = fs.statSync(target);
-				if (stats.isDirectory()) {
+				const isDirectory = stats.isDirectory();
+				
+				if (isDirectory) {
 					fs.rmSync(target, { recursive: true, force: true });
 				} else {
 					fs.unlinkSync(target);
 				}
+				
 				deleted.push(target);
+				this.emit("file:deleted", { path: target, isDirectory });
 			} catch (error) {
-				errors.push({
+				const err = { path: target, error: /** @type {Error} */ (error) };
+				errors.push(err);
+				this.emit("error", {
 					path: target,
 					error: /** @type {Error} */ (error),
+					phase: "deletion",
 				});
 			}
 		}

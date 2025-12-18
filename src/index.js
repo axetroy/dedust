@@ -71,11 +71,114 @@ export async function executeCleanup(rulesOrDsl, baseDir) {
 	return executeRules(rules, baseDir);
 }
 
+/**
+ * @callback EventListener
+ * @param {any} data - Event data
+ * @returns {void}
+ */
+
+/**
+ * @typedef {Object} EventListeners
+ * @property {EventListener} [onFileFound] - Called when a file is found
+ * @property {EventListener} [onFileDeleted] - Called when a file is deleted
+ * @property {EventListener} [onError] - Called when an error occurs
+ * @property {EventListener} [onScanStart] - Called when scanning starts
+ * @property {EventListener} [onScanDirectory] - Called when scanning a directory
+ * @property {EventListener} [onScanComplete] - Called when scanning completes
+ */
+
+/**
+ * Evaluate rules with event callbacks
+ * @param {string | Rule[]} rulesOrDsl - DSL text or parsed rules
+ * @param {string} baseDir - Base directory to evaluate from
+ * @param {EventListeners} listeners - Event listeners
+ * @returns {Promise<string[]>} Array of file paths that would be deleted
+ * @example
+ * ```js
+ * import { findTargetsWithEvents } from 'dust';
+ *
+ * const targets = await findTargetsWithEvents(dsl, '/path/to/project', {
+ *   onFileFound: (data) => console.log('Found:', data.path),
+ *   onScanComplete: (data) => console.log('Found', data.filesFound, 'files')
+ * });
+ * ```
+ */
+export async function findTargetsWithEvents(rulesOrDsl, baseDir, listeners = {}) {
+	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
+	const evaluator = new Evaluator(rules, baseDir);
+
+	// Attach event listeners
+	if (listeners.onFileFound) {
+		evaluator.on("file:found", listeners.onFileFound);
+	}
+	if (listeners.onError) {
+		evaluator.on("error", listeners.onError);
+	}
+	if (listeners.onScanStart) {
+		evaluator.on("scan:start", listeners.onScanStart);
+	}
+	if (listeners.onScanDirectory) {
+		evaluator.on("scan:directory", listeners.onScanDirectory);
+	}
+	if (listeners.onScanComplete) {
+		evaluator.on("scan:complete", listeners.onScanComplete);
+	}
+
+	return evaluator.evaluate(true);
+}
+
+/**
+ * Execute cleanup with event callbacks
+ * @param {string | Rule[]} rulesOrDsl - DSL text or parsed rules
+ * @param {string} baseDir - Base directory to execute from
+ * @param {EventListeners} listeners - Event listeners
+ * @returns {Promise<{deleted: string[], errors: Array<{path: string, error: Error}>}>}
+ * @example
+ * ```js
+ * import { executeCleanupWithEvents } from 'dust';
+ *
+ * const result = await executeCleanupWithEvents(dsl, '/path/to/project', {
+ *   onFileFound: (data) => console.log('Found:', data.path),
+ *   onFileDeleted: (data) => console.log('Deleted:', data.path),
+ *   onError: (data) => console.error('Error:', data.error)
+ * });
+ * ```
+ */
+export async function executeCleanupWithEvents(rulesOrDsl, baseDir, listeners = {}) {
+	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
+	const evaluator = new Evaluator(rules, baseDir);
+
+	// Attach event listeners
+	if (listeners.onFileFound) {
+		evaluator.on("file:found", listeners.onFileFound);
+	}
+	if (listeners.onFileDeleted) {
+		evaluator.on("file:deleted", listeners.onFileDeleted);
+	}
+	if (listeners.onError) {
+		evaluator.on("error", listeners.onError);
+	}
+	if (listeners.onScanStart) {
+		evaluator.on("scan:start", listeners.onScanStart);
+	}
+	if (listeners.onScanDirectory) {
+		evaluator.on("scan:directory", listeners.onScanDirectory);
+	}
+	if (listeners.onScanComplete) {
+		evaluator.on("scan:complete", listeners.onScanComplete);
+	}
+
+	const targets = await evaluator.evaluate(true);
+	return evaluator.execute(targets);
+}
+
 // Export everything as default
 export default {
 	parseRules,
 	findTargets,
 	executeCleanup,
+	findTargetsWithEvents,
+	executeCleanupWithEvents,
 	tokenize,
 	parse,
 	evaluate,

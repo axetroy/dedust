@@ -188,6 +188,61 @@ Returns:
 }
 ```
 
+### Event-Based API
+
+For real-time feedback during cleanup operations, use the event-based functions:
+
+#### `findTargetsWithEvents(rulesOrDsl, baseDir, listeners): Promise<string[]>`
+
+Find targets with event callbacks for real-time feedback.
+
+```javascript
+import { findTargetsWithEvents } from "dust";
+
+const targets = await findTargetsWithEvents("delete *.log", "/path/to/project", {
+	onFileFound: (data) => {
+		console.log("Found:", data.path);
+	},
+	onScanStart: (data) => {
+		console.log(`Scanning ${data.rulesCount} rules...`);
+	},
+	onScanComplete: (data) => {
+		console.log(`Scan complete. Found ${data.filesFound} files.`);
+	},
+});
+```
+
+#### `executeCleanupWithEvents(rulesOrDsl, baseDir, listeners): Promise<ExecutionResult>`
+
+Execute cleanup with event callbacks.
+
+```javascript
+import { executeCleanupWithEvents } from "dust";
+
+const result = await executeCleanupWithEvents("delete *.log", "/path/to/project", {
+	onFileFound: (data) => {
+		console.log("Found:", data.path);
+	},
+	onFileDeleted: (data) => {
+		console.log("Deleted:", data.path, data.isDirectory ? "(directory)" : "(file)");
+	},
+	onError: (data) => {
+		console.error("Error:", data.error.message, "at", data.path);
+	},
+});
+```
+
+#### Available Event Listeners
+
+| Event Listener       | Description                           | Data Type          |
+| -------------------- | ------------------------------------- | ------------------ |
+| `onFileFound`        | Called when a file is found           | `FileFoundEvent`   |
+| `onFileDeleted`      | Called when a file is deleted         | `FileDeletedEvent` |
+| `onError`            | Called when an error occurs           | `ErrorEvent`       |
+| `onScanStart`        | Called when scanning starts           | `ScanStartEvent`   |
+| `onScanDirectory`    | Called when scanning each directory   | `ScanDirectoryEvent` |
+| `onScanComplete`     | Called when scanning completes        | `ScanCompleteEvent` |
+
 ### Advanced Usage
 
 For advanced use cases, you can access the lower-level APIs:
@@ -203,9 +258,25 @@ const tokens = tokenizer.tokenize();
 const parser = new Parser(tokens);
 const rules = parser.parse();
 
-// Evaluate rules
+// Evaluate rules with direct event handling
 const evaluator = new Evaluator(rules, "/path/to/project");
+
+// Attach event listeners
+evaluator.on("file:found", (data) => {
+	console.log("Found:", data.path);
+});
+
+evaluator.on("file:deleted", (data) => {
+	console.log("Deleted:", data.path);
+});
+
+evaluator.on("error", (data) => {
+	console.error("Error:", data.error.message);
+});
+
+// Execute
 const targets = await evaluator.evaluate();
+const result = await evaluator.execute(targets);
 ```
 
 ## Real-World Examples
