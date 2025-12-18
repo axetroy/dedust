@@ -91,7 +91,7 @@ export interface ScanCompleteEvent {
 /**
  * Evaluator class for DSL rules
  * Extends EventEmitter to support events
- * 
+ *
  * Events:
  * - 'file:found' - Emitted when a file matching a rule is found
  * - 'file:deleted' - Emitted when a file is successfully deleted
@@ -168,7 +168,7 @@ export class Evaluator extends EventEmitter {
 	on(event: "scan:start", listener: (data: ScanStartEvent) => void): this;
 	on(event: "scan:directory", listener: (data: ScanDirectoryEvent) => void): this;
 	on(event: "scan:complete", listener: (data: ScanCompleteEvent) => void): this;
-	
+
 	emit(event: "file:found", data: FileFoundEvent): boolean;
 	emit(event: "file:deleted", data: FileDeletedEvent): boolean;
 	emit(event: "error", data: ErrorEvent): boolean;

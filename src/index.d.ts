@@ -107,11 +107,7 @@ export interface EventListeners {
  * });
  * ```
  */
-export function findTargetsWithEvents(
-	rulesOrDsl: string | Rule[],
-	baseDir: string,
-	listeners?: EventListeners
-): Promise<string[]>;
+export function findTargetsWithEvents(rulesOrDsl: string | Rule[], baseDir: string, listeners?: EventListeners): Promise<string[]>;
 
 /**
  * Execute cleanup with event callbacks

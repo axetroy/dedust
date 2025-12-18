@@ -40,7 +40,7 @@ import { EventEmitter } from "node:events";
  * Evaluator for dust DSL rules
  * Evaluates conditions and executes actions
  * @extends EventEmitter
- * 
+ *
  * Events:
  * - 'file:found' - Emitted when a file matching a rule is found
  * - 'file:deleted' - Emitted when a file is successfully deleted
@@ -335,7 +335,7 @@ export class Evaluator extends EventEmitter {
 		// For each directory, check all rules
 		for (const dir of directories) {
 			this.emit("scan:directory", { directory: dir });
-			
+
 			for (const rule of this.rules) {
 				if (rule.action === "delete") {
 					const targets = await this.findTargets(rule, dir);
@@ -347,10 +347,10 @@ export class Evaluator extends EventEmitter {
 		}
 
 		const targetsList = Array.from(allTargets);
-		this.emit("scan:complete", { 
-			baseDir: this.baseDir, 
+		this.emit("scan:complete", {
+			baseDir: this.baseDir,
 			filesFound: targetsList.length,
-			files: targetsList 
+			files: targetsList,
 		});
 
 		return targetsList;
@@ -370,13 +370,13 @@ export class Evaluator extends EventEmitter {
 				// Check if it's a directory or file
 				const stats = fs.statSync(target);
 				const isDirectory = stats.isDirectory();
-				
+
 				if (isDirectory) {
 					fs.rmSync(target, { recursive: true, force: true });
 				} else {
 					fs.unlinkSync(target);
 				}
-				
+
 				deleted.push(target);
 				this.emit("file:deleted", { path: target, isDirectory });
 			} catch (error) {
