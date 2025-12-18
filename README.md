@@ -19,6 +19,7 @@ See DSL design specifications at [spec.md](./spec.md)
 -   🚀 **Fast & Safe** - Dry-run mode by default, explicit deletion when needed
 -   📦 **Zero config** - Works out of the box with sensible defaults
 -   🔧 **TypeScript** - Full TypeScript type definitions included
+-   📦 **Dual module support** - Works with both ESM and CommonJS
 
 ## Installation
 
