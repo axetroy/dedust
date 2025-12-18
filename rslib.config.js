@@ -22,10 +22,22 @@ class RspackDtsCopyPlugin {
 					// TODO: 更加完善的处理方法应该是使用 AST 进行处理，而不是简单的正则替换
 					if (isModule) {
 						// 替换导入的模块路径为对应的模块类型，把 .js 的模块导入，替换成为 .mts
-						content = content.replace(/(from\s+['"].+?)\.js(['"])/g, "$1.mts$2");
+						content = content
+							// import ... from "./x.js" / export ... from "./x.js"
+							.replace(/(from\s+['"].+?)\.js(['"])/g, "$1.mts$2")
+							// import "./x.js" (副作用导入)
+							.replace(/(\bimport\s+['"].+?)\.js(['"])/g, "$1.mts$2")
+							// 动态导入：import("./x.js")、typeof import("./x.js")
+							.replace(/(\bimport\s*\(\s*['"].+?)\.js(['"]\s*\))/g, "$1.mts$2");
 					} else {
 						// 替换导入的模块路径为对应的模块类型，把 .js 的模块导入，替换成为 .cts
-						content = content.replace(/(from\s+['"].+?)\.js(['"])/g, "$1.cts$2");
+						content = content
+							// import ... from "./x.js" / export ... from "./x.js"
+							.replace(/(from\s+['"].+?)\.js(['"])/g, "$1.cts$2")
+							// import "./x.js" (副作用导入)
+							.replace(/(\bimport\s+['"].+?)\.js(['"])/g, "$1.cts$2")
+							// 动态导入：import("./x.js")、typeof import("./x.js")
+							.replace(/(\bimport\s*\(\s*['"].+?)\.js(['"]\s*\))/g, "$1.cts$2");
 					}
 
 					return new compiler.webpack.sources.RawSource(content);
