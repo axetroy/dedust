@@ -1,9 +1,10 @@
-import test from "node:test";
+import test, { beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { findTargets, executeCleanup, findTargetsWithEvents, executeCleanupWithEvents } from "../src/index.js";
+import { createStructure } from "./helper.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,29 +14,13 @@ const testDir1 = path.join(__dirname, ".test-multi-dir1");
 const testDir2 = path.join(__dirname, ".test-multi-dir2");
 const testDir3 = path.join(__dirname, ".test-multi-dir3");
 
-/**
- * Create a test directory structure
- * @param {Object} structure - Directory structure as nested object
- * @param {string} baseDir - Base directory to create structure in
- */
-function createStructure(structure, baseDir) {
-	if (!fs.existsSync(baseDir)) {
-		fs.mkdirSync(baseDir, { recursive: true });
-	}
+beforeEach(() => {
+	cleanup();
+});
 
-	for (const [name, content] of Object.entries(structure)) {
-		const fullPath = path.join(baseDir, name);
-
-		if (typeof content === "object" && content !== null) {
-			// It's a directory
-			fs.mkdirSync(fullPath, { recursive: true });
-			createStructure(content, fullPath);
-		} else {
-			// It's a file
-			fs.writeFileSync(fullPath, content || "", "utf8");
-		}
-	}
-}
+afterEach(() => {
+	cleanup();
+});
 
 /**
  * Clean up test directory
@@ -49,7 +34,6 @@ function cleanup() {
 }
 
 test("Multiple directories - findTargets with array", async () => {
-	cleanup();
 	createStructure(
 		{
 			"test.log": "log1",
@@ -74,12 +58,9 @@ test("Multiple directories - findTargets with array", async () => {
 	assert.ok(targets.some((t) => t.includes("test-multi-dir1") && t.endsWith("app.log")));
 	assert.ok(targets.some((t) => t.includes("test-multi-dir2") && t.endsWith("test.log")));
 	assert.ok(targets.some((t) => t.includes("test-multi-dir2") && t.endsWith("error.log")));
-
-	cleanup();
 });
 
 test("Multiple directories - findTargets with single string (backward compatible)", async () => {
-	cleanup();
 	createStructure(
 		{
 			"test.log": "log",
@@ -92,12 +73,9 @@ test("Multiple directories - findTargets with single string (backward compatible
 
 	assert.strictEqual(targets.length, 1);
 	assert.ok(targets[0].endsWith("test.log"));
-
-	cleanup();
 });
 
 test("Multiple directories - executeCleanup with array", async () => {
-	cleanup();
 	createStructure(
 		{
 			"test.log": "log1",
@@ -119,12 +97,9 @@ test("Multiple directories - executeCleanup with array", async () => {
 	assert.strictEqual(result.errors.length, 0);
 	assert.ok(!fs.existsSync(path.join(testDir1, "test.log")));
 	assert.ok(!fs.existsSync(path.join(testDir2, "test.log")));
-
-	cleanup();
 });
 
 test("Multiple directories - with conditions", async () => {
-	cleanup();
 	createStructure(
 		{
 			"Cargo.toml": "[package]",
@@ -157,12 +132,9 @@ test("Multiple directories - with conditions", async () => {
 	assert.ok(targets.some((t) => t.includes("test-multi-dir1") && t.endsWith("target")));
 	assert.ok(targets.some((t) => t.includes("test-multi-dir3") && t.endsWith("target")));
 	assert.ok(!targets.some((t) => t.includes("test-multi-dir2")));
-
-	cleanup();
 });
 
 test("Multiple directories - findTargetsWithEvents", async () => {
-	cleanup();
 	createStructure(
 		{
 			"test.log": "log1",
@@ -198,12 +170,9 @@ test("Multiple directories - findTargetsWithEvents", async () => {
 	assert.strictEqual(filesFound.length, 2);
 	assert.strictEqual(scanStartCount, 2); // Once per directory
 	assert.strictEqual(scanCompleteCount, 2); // Once per directory
-
-	cleanup();
 });
 
 test("Multiple directories - executeCleanupWithEvents", async () => {
-	cleanup();
 	createStructure(
 		{
 			"test.log": "log1",
@@ -231,8 +200,6 @@ test("Multiple directories - executeCleanupWithEvents", async () => {
 	assert.strictEqual(filesDeleted.length, 2);
 	assert.ok(!fs.existsSync(path.join(testDir1, "test.log")));
 	assert.ok(!fs.existsSync(path.join(testDir2, "test.log")));
-
-	cleanup();
 });
 
 test("Multiple directories - empty array", async () => {
@@ -243,7 +210,6 @@ test("Multiple directories - empty array", async () => {
 });
 
 test("Multiple directories - three directories", async () => {
-	cleanup();
 	createStructure(
 		{
 			"file1.log": "log",
@@ -269,6 +235,4 @@ test("Multiple directories - three directories", async () => {
 	const targets = await findTargets(dsl, [testDir1, testDir2, testDir3]);
 
 	assert.strictEqual(targets.length, 3);
-
-	cleanup();
 });
