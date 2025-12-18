@@ -43,14 +43,15 @@ function assertFalse(value, message) {
 }
 
 function assertThrows(fn, message) {
+  let didThrow = false;
   try {
     fn();
-    throw new Error(message || 'Expected function to throw');
   } catch (e) {
-    if (e.message === (message || 'Expected function to throw')) {
-      throw e;
-    }
-    // Expected error
+    didThrow = true;
+  }
+  
+  if (!didThrow) {
+    throw new Error(message || 'Expected function to throw but it did not');
   }
 }
 

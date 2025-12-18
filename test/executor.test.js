@@ -7,10 +7,11 @@ const { executeRule, evaluateCondition, checkExists } = require('../executor');
 const { parseRule } = require('../parser');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 // Helper to create test directory structure
 function createTestDir(name) {
-  const testDir = path.join('/tmp', `dust-test-${name}-${Date.now()}`);
+  const testDir = path.join(os.tmpdir(), `dust-test-${name}-${Date.now()}`);
   fs.mkdirSync(testDir, { recursive: true });
   return testDir;
 }

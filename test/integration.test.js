@@ -6,9 +6,10 @@ const { describe, it, assertEqual, assertTrue, assertFalse } = require('./test-f
 const { clean, parse } = require('../index');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 function createTestDir(name) {
-  const testDir = path.join('/tmp', `dust-test-${name}-${Date.now()}`);
+  const testDir = path.join(os.tmpdir(), `dust-test-${name}-${Date.now()}`);
   fs.mkdirSync(testDir, { recursive: true });
   return testDir;
 }
