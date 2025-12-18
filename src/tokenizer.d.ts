@@ -1,7 +1,7 @@
 /**
  * Token type enumeration
  */
-export type TokenType = 'keyword' | 'identifier' | 'string' | 'whitespace' | 'newline' | 'comment' | 'eof';
+export type TokenType = "keyword" | "identifier" | "string" | "whitespace" | "newline" | "comment" | "eof";
 
 /**
  * Represents a token in the DSL

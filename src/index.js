@@ -1,6 +1,6 @@
-import { tokenize, Tokenizer } from './tokenizer.js';
-import { parse, Parser } from './parser.js';
-import { evaluate, executeRules, Evaluator } from './evaluator.js';
+import { tokenize, Tokenizer } from "./tokenizer.js";
+import { parse, Parser } from "./parser.js";
+import { evaluate, executeRules, Evaluator } from "./evaluator.js";
 
 /**
  * @typedef {import('./parser.js').Rule} Rule
@@ -13,12 +13,12 @@ import { evaluate, executeRules, Evaluator } from './evaluator.js';
  * @example
  * ```js
  * import { parseRules } from 'dust';
- * 
+ *
  * const dsl = `
  *   delete target when exists Cargo.toml
  *   delete node_modules when exists package.json
  * `;
- * 
+ *
  * const rules = parseRules(dsl);
  * console.log(rules);
  * ```
@@ -36,14 +36,14 @@ export function parseRules(input) {
  * @example
  * ```js
  * import { findTargets } from 'dust';
- * 
+ *
  * const dsl = `delete *.log`;
  * const targets = await findTargets(dsl, '/path/to/project');
  * console.log('Would delete:', targets);
  * ```
  */
 export async function findTargets(rulesOrDsl, baseDir) {
-	const rules = typeof rulesOrDsl === 'string' ? parseRules(rulesOrDsl) : rulesOrDsl;
+	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
 	return evaluate(rules, baseDir, true);
 }
 
@@ -55,31 +55,31 @@ export async function findTargets(rulesOrDsl, baseDir) {
  * @example
  * ```js
  * import { executeCleanup } from 'dust';
- * 
+ *
  * const dsl = `
  *   delete target when exists Cargo.toml
  *   delete node_modules when exists package.json
  * `;
- * 
+ *
  * const result = await executeCleanup(dsl, '/path/to/project');
  * console.log('Deleted:', result.deleted);
  * console.log('Errors:', result.errors);
  * ```
  */
 export async function executeCleanup(rulesOrDsl, baseDir) {
-	const rules = typeof rulesOrDsl === 'string' ? parseRules(rulesOrDsl) : rulesOrDsl;
+	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
 	return executeRules(rules, baseDir);
 }
 
 // Export everything as default
 export default {
-parseRules,
-findTargets,
-executeCleanup,
-tokenize,
-parse,
-evaluate,
-executeRules,
+	parseRules,
+	findTargets,
+	executeCleanup,
+	tokenize,
+	parse,
+	evaluate,
+	executeRules,
 };
 
 // Export classes for advanced usage

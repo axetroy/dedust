@@ -1,6 +1,6 @@
-import { glob } from 'glob';
-import path from 'node:path';
-import fs from 'node:fs';
+import { glob } from "glob";
+import path from "node:path";
+import fs from "node:fs";
 
 /**
  * @typedef {import('./parser.js').Rule} Rule
@@ -38,7 +38,7 @@ export class Evaluator {
 	async exists(dir, pattern) {
 		try {
 			const fullPattern = path.join(dir, pattern);
-			
+
 			// For simple patterns without glob characters, use direct fs check
 			if (!/[*?[\]{}]/.test(pattern)) {
 				return fs.existsSync(fullPattern);
@@ -64,10 +64,10 @@ export class Evaluator {
 	 */
 	getLocationDirs(currentDir, location) {
 		switch (location) {
-			case 'here':
+			case "here":
 				return [currentDir];
 
-			case 'parent': {
+			case "parent": {
 				const parentDir = path.dirname(currentDir);
 				// Don't go above the base directory
 				if (parentDir === currentDir || !parentDir.startsWith(this.baseDir)) {
@@ -76,7 +76,7 @@ export class Evaluator {
 				return [parentDir];
 			}
 
-			case 'parents': {
+			case "parents": {
 				const dirs = [];
 				let dir = path.dirname(currentDir);
 				while (dir !== currentDir && dir.startsWith(this.baseDir)) {
@@ -87,19 +87,17 @@ export class Evaluator {
 				return dirs;
 			}
 
-			case 'child': {
+			case "child": {
 				// Direct child directories
 				try {
 					const entries = fs.readdirSync(currentDir, { withFileTypes: true });
-					return entries
-						.filter((entry) => entry.isDirectory())
-						.map((entry) => path.join(currentDir, entry.name));
+					return entries.filter((entry) => entry.isDirectory()).map((entry) => path.join(currentDir, entry.name));
 				} catch {
 					return [];
 				}
 			}
 
-			case 'children': {
+			case "children": {
 				// All descendant directories (recursive)
 				const dirs = [];
 				const collectDirs = (dir) => {
@@ -120,7 +118,7 @@ export class Evaluator {
 				return dirs;
 			}
 
-			case 'sibling': {
+			case "sibling": {
 				// Sibling directories (same parent)
 				const parentDir = path.dirname(currentDir);
 				if (parentDir === currentDir || !parentDir.startsWith(this.baseDir)) {
@@ -149,19 +147,19 @@ export class Evaluator {
 	 * @returns {Promise<boolean>}
 	 */
 	async evaluatePredicate(predicate, currentDir) {
-		if (predicate.type === 'not') {
+		if (predicate.type === "not") {
 			if (!predicate.negated) {
 				return false;
 			}
 			return !(await this.evaluatePredicate(predicate.negated, currentDir));
 		}
 
-		if (predicate.type === 'exists') {
+		if (predicate.type === "exists") {
 			const dirs = this.getLocationDirs(currentDir, predicate.location);
-			
+
 			// For exists, check if pattern exists in any of the location directories
 			for (const dir of dirs) {
-				if (await this.exists(dir, predicate.pattern || '')) {
+				if (await this.exists(dir, predicate.pattern || "")) {
 					return true;
 				}
 			}
@@ -178,28 +176,28 @@ export class Evaluator {
 	 * @returns {Promise<boolean>}
 	 */
 	async evaluateCondition(condition, currentDir) {
-		if (condition.type === 'predicate') {
+		if (condition.type === "predicate") {
 			if (!condition.predicate) {
 				return true;
 			}
 			return this.evaluatePredicate(condition.predicate, currentDir);
 		}
 
-		if (condition.type === 'and') {
+		if (condition.type === "and") {
 			// Evaluate both sides of AND
 			if (!condition.left || !condition.right) {
 				return false;
 			}
-			
+
 			// Left side is always a Predicate
 			const leftResult = await this.evaluatePredicate(condition.left, currentDir);
 			if (!leftResult) {
 				return false;
 			}
-			
+
 			// Right side can be either a Predicate or a nested Condition (for chained ANDs)
 			// Check if it's a Condition by looking at its structure
-			if (condition.right.type === 'and' || condition.right.type === 'predicate') {
+			if (condition.right.type === "and" || condition.right.type === "predicate") {
 				// It's a nested Condition
 				return this.evaluateCondition(/** @type {Condition} */ (/** @type {unknown} */ (condition.right)), currentDir);
 			} else {
@@ -256,7 +254,7 @@ export class Evaluator {
 		// Find matching targets
 		try {
 			const pattern = rule.target;
-			
+
 			// For simple patterns without glob, check directly
 			if (!/[*?[\]{}]/.test(pattern)) {
 				const fullPath = path.join(dir, pattern);
@@ -295,7 +293,7 @@ export class Evaluator {
 		// For each directory, check all rules
 		for (const dir of directories) {
 			for (const rule of this.rules) {
-				if (rule.action === 'delete') {
+				if (rule.action === "delete") {
 					const targets = await this.findTargets(rule, dir);
 					for (const target of targets) {
 						allTargets.add(target);

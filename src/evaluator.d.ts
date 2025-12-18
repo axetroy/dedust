@@ -1,4 +1,4 @@
-import { Rule, LocationType } from './parser.js';
+import { Rule, LocationType } from "./parser.js";
 
 /**
  * Evaluation context for rules
@@ -53,14 +53,14 @@ export class Evaluator {
 	 * @param predicate - The predicate to evaluate
 	 * @param currentDir - Current directory context
 	 */
-	evaluatePredicate(predicate: import('./parser.js').Predicate, currentDir: string): Promise<boolean>;
+	evaluatePredicate(predicate: import("./parser.js").Predicate, currentDir: string): Promise<boolean>;
 
 	/**
 	 * Evaluate a condition
 	 * @param condition - The condition to evaluate
 	 * @param currentDir - Current directory context
 	 */
-	evaluateCondition(condition: import('./parser.js').Condition, currentDir: string): Promise<boolean>;
+	evaluateCondition(condition: import("./parser.js").Condition, currentDir: string): Promise<boolean>;
 
 	/**
 	 * Get all directories recursively from base

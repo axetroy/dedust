@@ -62,4 +62,3 @@ test("test cjs output", () => {
 	assert.ok(output.includes('"target": "target"'), "Should parse target correctly");
 	assert.ok(output.includes("✓ CJS module works correctly"), "Should complete successfully");
 });
-

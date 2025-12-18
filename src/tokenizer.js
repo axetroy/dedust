@@ -6,19 +6,7 @@
  * @property {number} column
  */
 
-const KEYWORDS = new Set([
-	'delete',
-	'when',
-	'exists',
-	'and',
-	'not',
-	'here',
-	'parent',
-	'parents',
-	'child',
-	'children',
-	'sibling',
-]);
+const KEYWORDS = new Set(["delete", "when", "exists", "and", "not", "here", "parent", "parents", "child", "children", "sibling"]);
 
 /**
  * Tokenizer for the dust DSL
@@ -56,7 +44,7 @@ export class Tokenizer {
 		}
 		const char = this.input[this.pos];
 		this.pos++;
-		if (char === '\n') {
+		if (char === "\n") {
 			this.line++;
 			this.column = 1;
 		} else {
@@ -71,7 +59,7 @@ export class Tokenizer {
 	skipWhitespace() {
 		while (this.peek() !== null) {
 			const char = this.peek();
-			if (char === ' ' || char === '\t' || char === '\r') {
+			if (char === " " || char === "\t" || char === "\r") {
 				this.advance();
 			} else {
 				break;
@@ -86,18 +74,18 @@ export class Tokenizer {
 	readComment() {
 		const line = this.line;
 		const column = this.column;
-		let value = '';
+		let value = "";
 
 		// Skip the # character
 		this.advance();
 
 		// Read until end of line or end of input
-		while (this.peek() !== null && this.peek() !== '\n') {
+		while (this.peek() !== null && this.peek() !== "\n") {
 			value += this.advance();
 		}
 
 		return {
-			type: 'comment',
+			type: "comment",
 			value: value.trim(),
 			line,
 			column,
@@ -111,7 +99,7 @@ export class Tokenizer {
 	readIdentifier() {
 		const line = this.line;
 		const column = this.column;
-		let value = '';
+		let value = "";
 
 		while (this.peek() !== null) {
 			const char = this.peek();
@@ -123,7 +111,7 @@ export class Tokenizer {
 			}
 		}
 
-		const type = KEYWORDS.has(value) ? 'keyword' : 'identifier';
+		const type = KEYWORDS.has(value) ? "keyword" : "identifier";
 
 		return {
 			type,
@@ -150,13 +138,13 @@ export class Tokenizer {
 			}
 
 			// Handle newlines
-			if (char === '\n') {
+			if (char === "\n") {
 				this.advance();
 				continue;
 			}
 
 			// Handle comments
-			if (char === '#') {
+			if (char === "#") {
 				tokens.push(this.readComment());
 				continue;
 			}
@@ -173,8 +161,8 @@ export class Tokenizer {
 
 		// Add EOF token
 		tokens.push({
-			type: 'eof',
-			value: '',
+			type: "eof",
+			value: "",
 			line: this.line,
 			column: this.column,
 		});

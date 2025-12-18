@@ -1,15 +1,15 @@
-import test from 'node:test';
-import assert from 'node:assert';
-import path from 'node:path';
-import fs from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { parseRules, findTargets, executeCleanup } from '../src/index.js';
+import test from "node:test";
+import assert from "node:assert";
+import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
+import { parseRules, findTargets, executeCleanup } from "../src/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Create a temporary test directory
-const testDir = path.join(__dirname, '.test-tmp');
+const testDir = path.join(__dirname, ".test-tmp");
 
 /**
  * Create a test directory structure
@@ -24,13 +24,13 @@ function createStructure(structure, baseDir = testDir) {
 	for (const [name, content] of Object.entries(structure)) {
 		const fullPath = path.join(baseDir, name);
 
-		if (typeof content === 'object' && content !== null) {
+		if (typeof content === "object" && content !== null) {
 			// It's a directory
 			fs.mkdirSync(fullPath, { recursive: true });
 			createStructure(content, fullPath);
 		} else {
 			// It's a file
-			fs.writeFileSync(fullPath, content || '', 'utf8');
+			fs.writeFileSync(fullPath, content || "", "utf8");
 		}
 	}
 }
@@ -44,56 +44,56 @@ function cleanup() {
 	}
 }
 
-test('Evaluator - simple delete without condition', async () => {
+test("Evaluator - simple delete without condition", async () => {
 	cleanup();
 	createStructure({
-		'test.log': 'log content',
-		'app.log': 'app log',
-		'readme.txt': 'readme',
+		"test.log": "log content",
+		"app.log": "app log",
+		"readme.txt": "readme",
 	});
 
-	const dsl = 'delete *.log';
+	const dsl = "delete *.log";
 	const targets = await findTargets(dsl, testDir);
 
 	assert.strictEqual(targets.length, 2);
-	assert.ok(targets.some((t) => t.endsWith('test.log')));
-	assert.ok(targets.some((t) => t.endsWith('app.log')));
-	assert.ok(!targets.some((t) => t.endsWith('readme.txt')));
+	assert.ok(targets.some((t) => t.endsWith("test.log")));
+	assert.ok(targets.some((t) => t.endsWith("app.log")));
+	assert.ok(!targets.some((t) => t.endsWith("readme.txt")));
 
 	cleanup();
 });
 
-test('Evaluator - delete with exists condition', async () => {
+test("Evaluator - delete with exists condition", async () => {
 	cleanup();
 	createStructure({
 		project1: {
-			'Cargo.toml': '[package]',
+			"Cargo.toml": "[package]",
 			target: {
-				'debug': {},
+				debug: {},
 			},
 		},
 		project2: {
-			'package.json': '{}',
+			"package.json": "{}",
 		},
 	});
 
-	const dsl = 'delete target when exists Cargo.toml';
+	const dsl = "delete target when exists Cargo.toml";
 	const targets = await findTargets(dsl, testDir);
 
 	assert.strictEqual(targets.length, 1);
-	assert.ok(targets[0].includes('project1'));
-	assert.ok(targets[0].endsWith('target'));
+	assert.ok(targets[0].includes("project1"));
+	assert.ok(targets[0].endsWith("target"));
 
 	cleanup();
 });
 
-test('Evaluator - delete with parent exists', async () => {
+test("Evaluator - delete with parent exists", async () => {
 	cleanup();
 	createStructure({
 		workspace: {
-			'Cargo.toml': '[workspace]',
+			"Cargo.toml": "[workspace]",
 			crate1: {
-				'Cargo.toml': '[package]',
+				"Cargo.toml": "[package]",
 				target: {},
 			},
 			crate2: {
@@ -102,84 +102,84 @@ test('Evaluator - delete with parent exists', async () => {
 		},
 	});
 
-	const dsl = 'delete target when parent exists Cargo.toml';
+	const dsl = "delete target when parent exists Cargo.toml";
 	const targets = await findTargets(dsl, testDir);
 
 	// Should match workspace/target (parent has Cargo.toml)
 	// Should match crate1/target (parent crate1 has Cargo.toml)
 	// Should NOT match crate2/target (parent crate2 doesn't have Cargo.toml)
 	assert.ok(targets.length >= 1);
-	assert.ok(targets.some((t) => t.includes('crate1') && t.endsWith('target')));
+	assert.ok(targets.some((t) => t.includes("crate1") && t.endsWith("target")));
 
 	cleanup();
 });
 
-test('Evaluator - delete with AND condition', async () => {
+test("Evaluator - delete with AND condition", async () => {
 	cleanup();
 	createStructure({
 		project1: {
-			'Cargo.toml': '[package]',
+			"Cargo.toml": "[package]",
 			src: {
-				'lib.rs': 'fn main() {}',
+				"lib.rs": "fn main() {}",
 			},
 			target: {},
 		},
 		project2: {
-			'Cargo.toml': '[package]',
+			"Cargo.toml": "[package]",
 			target: {},
 		},
 	});
 
-	const dsl = 'delete target when exists Cargo.toml and exists src';
+	const dsl = "delete target when exists Cargo.toml and exists src";
 	const targets = await findTargets(dsl, testDir);
 
 	// Only project1 has both Cargo.toml and src
 	assert.strictEqual(targets.length, 1);
-	assert.ok(targets[0].includes('project1'));
+	assert.ok(targets[0].includes("project1"));
 
 	cleanup();
 });
 
-test('Evaluator - delete with NOT condition', async () => {
+test("Evaluator - delete with NOT condition", async () => {
 	cleanup();
 	createStructure({
 		project1: {
-			'Cargo.toml': '[package]',
+			"Cargo.toml": "[package]",
 			target: {},
 		},
 		project2: {
-			'Cargo.toml': '[package]',
-			'keep.txt': 'keep me',
+			"Cargo.toml": "[package]",
+			"keep.txt": "keep me",
 			target: {},
 		},
 	});
 
-	const dsl = 'delete target when exists Cargo.toml and not exists keep.txt';
+	const dsl = "delete target when exists Cargo.toml and not exists keep.txt";
 	const targets = await findTargets(dsl, testDir);
 
 	// Only project1 should match (doesn't have keep.txt)
 	assert.strictEqual(targets.length, 1);
-	assert.ok(targets[0].includes('project1'));
+	assert.ok(targets[0].includes("project1"));
 
 	cleanup();
 });
 
-test('Evaluator - delete with parents exists', async () => {
+test("Evaluator - delete with parents exists", async () => {
 	cleanup();
 	createStructure({
-		'.git': {},
+		".git": {},
 		src: {
-			'test.tmp': 'temp',
+			"test.tmp": "temp",
 			nested: {
-				'file.tmp': 'temp',
+				"file.tmp": "temp",
 			},
 		},
 		other: {
-			'another.tmp': 'temp',
+			"another.tmp": "temp",
 		},
 	});
 
-	const dsl = 'delete **/*.tmp when parents exists .git';
+	const dsl = "delete **/*.tmp when parents exists .git";
 	const targets = await findTargets(dsl, testDir);
 
 	// All .tmp files should be found since .git is in an ancestor
@@ -188,38 +188,38 @@ test('Evaluator - delete with parents exists', async () => {
 	cleanup();
 });
 
-test('Evaluator - execute cleanup', async () => {
+test("Evaluator - execute cleanup", async () => {
 	cleanup();
 	createStructure({
-		'test.log': 'log',
-		'app.log': 'log',
-		'readme.txt': 'text',
+		"test.log": "log",
+		"app.log": "log",
+		"readme.txt": "text",
 	});
 
-	const dsl = 'delete *.log';
+	const dsl = "delete *.log";
 	const result = await executeCleanup(dsl, testDir);
 
 	assert.strictEqual(result.deleted.length, 2);
 	assert.strictEqual(result.errors.length, 0);
 
 	// Check files are actually deleted
-	assert.ok(!fs.existsSync(path.join(testDir, 'test.log')));
-	assert.ok(!fs.existsSync(path.join(testDir, 'app.log')));
-	assert.ok(fs.existsSync(path.join(testDir, 'readme.txt')));
+	assert.ok(!fs.existsSync(path.join(testDir, "test.log")));
+	assert.ok(!fs.existsSync(path.join(testDir, "app.log")));
+	assert.ok(fs.existsSync(path.join(testDir, "readme.txt")));
 
 	cleanup();
 });
 
-test('Evaluator - multiple rules', async () => {
+test("Evaluator - multiple rules", async () => {
 	cleanup();
 	createStructure({
-		'test.log': 'log',
+		"test.log": "log",
 		rust_project: {
-			'Cargo.toml': '[package]',
+			"Cargo.toml": "[package]",
 			target: {},
 		},
 		node_project: {
-			'package.json': '{}',
+			"package.json": "{}",
 			node_modules: {},
 		},
 	});
@@ -232,20 +232,20 @@ delete node_modules when exists package.json`;
 
 	// Should find: test.log, rust_project/target, node_project/node_modules
 	assert.ok(targets.length >= 3);
-	assert.ok(targets.some((t) => t.endsWith('test.log')));
-	assert.ok(targets.some((t) => t.includes('rust_project') && t.endsWith('target')));
-	assert.ok(targets.some((t) => t.includes('node_project') && t.endsWith('node_modules')));
+	assert.ok(targets.some((t) => t.endsWith("test.log")));
+	assert.ok(targets.some((t) => t.includes("rust_project") && t.endsWith("target")));
+	assert.ok(targets.some((t) => t.includes("node_project") && t.endsWith("node_modules")));
 
 	cleanup();
 });
 
-test('Evaluator - no matches', async () => {
+test("Evaluator - no matches", async () => {
 	cleanup();
 	createStructure({
-		'readme.txt': 'text',
+		"readme.txt": "text",
 	});
 
-	const dsl = 'delete *.log';
+	const dsl = "delete *.log";
 	const targets = await findTargets(dsl, testDir);
 
 	assert.strictEqual(targets.length, 0);
@@ -253,20 +253,20 @@ test('Evaluator - no matches', async () => {
 	cleanup();
 });
 
-test('Evaluator - with child location', async () => {
+test("Evaluator - with child location", async () => {
 	cleanup();
 	createStructure({
 		parent: {
 			child1: {
-				'file.txt': 'text',
+				"file.txt": "text",
 			},
 			child2: {
-				'file.txt': 'text',
+				"file.txt": "text",
 			},
 		},
 	});
 
-	const dsl = 'delete file.txt when child exists file.txt';
+	const dsl = "delete file.txt when child exists file.txt";
 	const targets = await findTargets(dsl, testDir);
 
 	// This rule is a bit tricky - it looks for file.txt in directories
@@ -279,56 +279,56 @@ test('Evaluator - with child location', async () => {
 	cleanup();
 });
 
-test('Evaluator - directory deletion', async () => {
+test("Evaluator - directory deletion", async () => {
 	cleanup();
 	createStructure({
-		'Cargo.toml': '[package]',
+		"Cargo.toml": "[package]",
 		target: {
 			debug: {
-				'app': 'binary',
+				app: "binary",
 			},
 		},
 	});
 
-	const dsl = 'delete target when exists Cargo.toml';
+	const dsl = "delete target when exists Cargo.toml";
 	const result = await executeCleanup(dsl, testDir);
 
 	assert.strictEqual(result.deleted.length, 1);
-	assert.ok(!fs.existsSync(path.join(testDir, 'target')));
+	assert.ok(!fs.existsSync(path.join(testDir, "target")));
 
 	cleanup();
 });
 
-test('Parser integration - complex real-world example', async () => {
+test("Parser integration - complex real-world example", async () => {
 	cleanup();
 	createStructure({
-		'.git': {},
+		".git": {},
 		rust_workspace: {
-			'Cargo.toml': '[workspace]',
+			"Cargo.toml": "[workspace]",
 			crate1: {
-				'Cargo.toml': '[package]',
+				"Cargo.toml": "[package]",
 				src: {},
 				target: {},
 			},
 			crate2: {
-				'Cargo.toml': '[package]',
+				"Cargo.toml": "[package]",
 				src: {},
 				target: {},
 			},
 		},
 		node_project: {
-			'package.json': '{}',
+			"package.json": "{}",
 			node_modules: {},
 			src: {},
 		},
 		python_project: {
-			'pyproject.toml': '[tool.poetry]',
-			'.venv': {},
+			"pyproject.toml": "[tool.poetry]",
+			".venv": {},
 		},
-		'test.log': 'log',
+		"test.log": "log",
 		logs: {
-			'app.log': 'log',
-			'error.log': 'log',
+			"app.log": "log",
+			"error.log": "log",
 		},
 	});
 
@@ -355,16 +355,16 @@ delete **/*.log when parents exists .git`;
 	const targetPaths = targets.map((t) => path.relative(testDir, t));
 
 	// Should have rust targets
-	assert.ok(targetPaths.some((t) => t.includes('target')));
+	assert.ok(targetPaths.some((t) => t.includes("target")));
 
 	// Should have node_modules
-	assert.ok(targetPaths.some((t) => t.includes('node_modules')));
+	assert.ok(targetPaths.some((t) => t.includes("node_modules")));
 
 	// Should have .venv
-	assert.ok(targetPaths.some((t) => t.includes('.venv')));
+	assert.ok(targetPaths.some((t) => t.includes(".venv")));
 
 	// Should have log files
-	assert.ok(targetPaths.some((t) => t.endsWith('.log')));
+	assert.ok(targetPaths.some((t) => t.endsWith(".log")));
 
 	cleanup();
 });

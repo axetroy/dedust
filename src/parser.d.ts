@@ -1,14 +1,14 @@
-import { Token } from './tokenizer.js';
+import { Token } from "./tokenizer.js";
 
 /**
  * Action types supported by the DSL
  */
-export type ActionType = 'delete';
+export type ActionType = "delete";
 
 /**
  * Location modifiers for condition predicates
  */
-export type LocationType = 'here' | 'parent' | 'parents' | 'child' | 'children' | 'sibling';
+export type LocationType = "here" | "parent" | "parents" | "child" | "children" | "sibling";
 
 /**
  * Represents a DSL rule
@@ -27,7 +27,7 @@ export interface Rule {
  */
 export interface Condition {
 	/** Condition type */
-	type: 'and' | 'predicate';
+	type: "and" | "predicate";
 	/** Left predicate for 'and' conditions */
 	left: Predicate | null;
 	/** Right predicate for 'and' conditions */
@@ -41,7 +41,7 @@ export interface Condition {
  */
 export interface Predicate {
 	/** Predicate type */
-	type: 'exists' | 'not';
+	type: "exists" | "not";
 	/** Location modifier for 'exists' */
 	location: LocationType;
 	/** Pattern for 'exists' */

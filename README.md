@@ -4,12 +4,12 @@ A DSL-based garbage file cleanup tool for managing build artifacts, dependencies
 
 ## Features
 
-- 🎯 **Simple DSL** - Human-readable, line-based cleanup rules
-- 🔍 **Context-aware** - Support for parent, child, sibling, and ancestor directory conditions
-- 🌟 **Glob patterns** - Full support for wildcard patterns (`*.log`, `**/*.tmp`, etc.)
-- 🚀 **Fast & Safe** - Dry-run mode by default, explicit deletion when needed
-- 📦 **Zero config** - Works out of the box with sensible defaults
-- 🔧 **TypeScript** - Full TypeScript type definitions included
+-   🎯 **Simple DSL** - Human-readable, line-based cleanup rules
+-   🔍 **Context-aware** - Support for parent, child, sibling, and ancestor directory conditions
+-   🌟 **Glob patterns** - Full support for wildcard patterns (`*.log`, `**/*.tmp`, etc.)
+-   🚀 **Fast & Safe** - Dry-run mode by default, explicit deletion when needed
+-   📦 **Zero config** - Works out of the box with sensible defaults
+-   🔧 **TypeScript** - Full TypeScript type definitions included
 
 ## Installation
 
@@ -20,31 +20,31 @@ npm install dust
 ## Quick Start
 
 ```javascript
-import { parseRules, findTargets, executeCleanup } from 'dust';
+import { parseRules, findTargets, executeCleanup } from "dust";
 
 // Define cleanup rules
 const dsl = `
   # Rust projects
   delete target when exists Cargo.toml
-  
-  # Node projects  
+
+  # Node projects
   delete node_modules when exists package.json
-  
+
   # Python projects
   delete .venv when exists pyproject.toml
-  
+
   # Log files everywhere
   delete *.log
 `;
 
 // Find what would be deleted (dry run)
-const targets = await findTargets(dsl, '/path/to/project');
-console.log('Would delete:', targets);
+const targets = await findTargets(dsl, "/path/to/project");
+console.log("Would delete:", targets);
 
 // Actually delete the files
-const result = await executeCleanup(dsl, '/path/to/project');
-console.log('Deleted:', result.deleted);
-console.log('Errors:', result.errors);
+const result = await executeCleanup(dsl, "/path/to/project");
+console.log("Deleted:", result.deleted);
+console.log("Errors:", result.errors);
 ```
 
 ## DSL Syntax
@@ -57,36 +57,36 @@ console.log('Errors:', result.errors);
 
 ### Actions
 
-- `delete` - Delete matching files or directories
+-   `delete` - Delete matching files or directories
 
 ### Targets
 
 Targets support glob patterns:
 
-- `target` - Simple directory/file name
-- `*.log` - All files with .log extension
-- `**/*.tmp` - All .tmp files recursively
-- `node_modules` - Specific directory name
+-   `target` - Simple directory/file name
+-   `*.log` - All files with .log extension
+-   `**/*.tmp` - All .tmp files recursively
+-   `node_modules` - Specific directory name
 
 ### Conditions
 
 #### Location Modifiers
 
-- `here` - Current directory (default, can be omitted)
-- `parent` - Parent directory
-- `parents` - Any ancestor directory
-- `child` - Direct child directory
-- `children` - Any descendant directory
-- `sibling` - Sibling directory
+-   `here` - Current directory (default, can be omitted)
+-   `parent` - Parent directory
+-   `parents` - Any ancestor directory
+-   `child` - Direct child directory
+-   `children` - Any descendant directory
+-   `sibling` - Sibling directory
 
 #### Predicates
 
-- `exists <pattern>` - Check if pattern exists
-- `not exists <pattern>` - Check if pattern doesn't exist
+-   `exists <pattern>` - Check if pattern exists
+-   `not exists <pattern>` - Check if pattern doesn't exist
 
 #### Logical Operators
 
-- `and` - Combine multiple conditions
+-   `and` - Combine multiple conditions
 
 ### Examples
 
@@ -117,9 +117,9 @@ delete *.log
 Parse DSL text into an array of rules.
 
 ```javascript
-import { parseRules } from 'dust';
+import { parseRules } from "dust";
 
-const rules = parseRules('delete target when exists Cargo.toml');
+const rules = parseRules("delete target when exists Cargo.toml");
 console.log(rules);
 ```
 
@@ -128,10 +128,10 @@ console.log(rules);
 Find all targets that match the rules (dry run - doesn't delete anything).
 
 ```javascript
-import { findTargets } from 'dust';
+import { findTargets } from "dust";
 
-const targets = await findTargets('delete *.log', '/path/to/project');
-console.log('Would delete:', targets);
+const targets = await findTargets("delete *.log", "/path/to/project");
+console.log("Would delete:", targets);
 ```
 
 ### `executeCleanup(rulesOrDsl: string | Rule[], baseDir: string): Promise<ExecutionResult>`
@@ -139,14 +139,15 @@ console.log('Would delete:', targets);
 Execute the rules and actually delete matching files/directories.
 
 ```javascript
-import { executeCleanup } from 'dust';
+import { executeCleanup } from "dust";
 
-const result = await executeCleanup('delete *.log', '/path/to/project');
-console.log('Deleted:', result.deleted);
-console.log('Errors:', result.errors);
+const result = await executeCleanup("delete *.log", "/path/to/project");
+console.log("Deleted:", result.deleted);
+console.log("Errors:", result.errors);
 ```
 
 Returns:
+
 ```typescript
 {
   deleted: string[],      // Successfully deleted paths
@@ -162,10 +163,10 @@ Returns:
 For advanced use cases, you can access the lower-level APIs:
 
 ```javascript
-import { Tokenizer, Parser, Evaluator } from 'dust';
+import { Tokenizer, Parser, Evaluator } from "dust";
 
 // Tokenize DSL text
-const tokenizer = new Tokenizer('delete target');
+const tokenizer = new Tokenizer("delete target");
 const tokens = tokenizer.tokenize();
 
 // Parse tokens into rules
@@ -173,7 +174,7 @@ const parser = new Parser(tokens);
 const rules = parser.parse();
 
 // Evaluate rules
-const evaluator = new Evaluator(rules, '/path/to/project');
+const evaluator = new Evaluator(rules, "/path/to/project");
 const targets = await evaluator.evaluate();
 ```
 
@@ -210,10 +211,10 @@ console.log(`Cleaned up ${result.deleted.length} items`);
 
 ```javascript
 // Only clean Rust projects with source code
-const dsl = 'delete target when exists Cargo.toml and exists src';
+const dsl = "delete target when exists Cargo.toml and exists src";
 
 // Don't clean if keep marker exists
-const dsl2 = 'delete target when exists Cargo.toml and not exists .keep';
+const dsl2 = "delete target when exists Cargo.toml and not exists .keep";
 ```
 
 ## TypeScript Support
@@ -221,12 +222,12 @@ const dsl2 = 'delete target when exists Cargo.toml and not exists .keep';
 Full TypeScript definitions are included:
 
 ```typescript
-import { parseRules, findTargets, ExecutionResult, Rule } from 'dust';
+import { parseRules, findTargets, ExecutionResult, Rule } from "dust";
 
-const dsl: string = 'delete *.log';
+const dsl: string = "delete *.log";
 const rules: Rule[] = parseRules(dsl);
-const targets: string[] = await findTargets(rules, '/path');
-const result: ExecutionResult = await executeCleanup(rules, '/path');
+const targets: string[] = await findTargets(rules, "/path");
+const result: ExecutionResult = await executeCleanup(rules, "/path");
 ```
 
 ## Safety Features
@@ -246,10 +247,10 @@ const result: ExecutionResult = await executeCleanup(rules, '/path');
 
 ## Limitations
 
-- No OR operator (use multiple rules instead)
-- No regex patterns (use glob patterns)
-- No relative path operators (`../`, `./`) in patterns
-- Actions are limited to `delete` (may be expanded in future)
+-   No OR operator (use multiple rules instead)
+-   No regex patterns (use glob patterns)
+-   No relative path operators (`../`, `./`) in patterns
+-   Actions are limited to `delete` (may be expanded in future)
 
 ## Contributing
 
@@ -262,4 +263,3 @@ SEE LICENSE IN LICENSE
 ## Credits
 
 Created by [Axetroy](https://github.com/axetroy)
-

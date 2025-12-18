@@ -35,7 +35,7 @@ export class Parser {
 	 * @param {import('./tokenizer.js').Token[]} tokens
 	 */
 	constructor(tokens) {
-		this.tokens = tokens.filter((t) => t.type !== 'comment');
+		this.tokens = tokens.filter((t) => t.type !== "comment");
 		this.pos = 0;
 	}
 
@@ -72,9 +72,7 @@ export class Parser {
 	expect(value) {
 		const token = this.peek();
 		if (token?.value !== value) {
-			throw new Error(
-				`Expected '${value}' but got '${token?.value}' at line ${token?.line}, column ${token?.column}`
-			);
+			throw new Error(`Expected '${value}' but got '${token?.value}' at line ${token?.line}, column ${token?.column}`);
 		}
 		return this.advance();
 	}
@@ -85,17 +83,12 @@ export class Parser {
 	 */
 	parseLocation() {
 		const token = this.peek();
-		if (
-			token?.type === 'keyword' &&
-			['here', 'parent', 'parents', 'child', 'children', 'sibling'].includes(
-				token.value
-			)
-		) {
+		if (token?.type === "keyword" && ["here", "parent", "parents", "child", "children", "sibling"].includes(token.value)) {
 			this.advance();
 			return /** @type {LocationType} */ (token.value);
 		}
 		// Default location is 'here'
-		return 'here';
+		return "here";
 	}
 
 	/**
@@ -104,12 +97,12 @@ export class Parser {
 	 */
 	parsePredicate() {
 		// Check for 'not'
-		if (this.match('not')) {
+		if (this.match("not")) {
 			this.advance();
 			const negated = this.parsePredicate();
 			return {
-				type: 'not',
-				location: 'here',
+				type: "not",
+				location: "here",
 				pattern: null,
 				negated,
 			};
@@ -119,19 +112,17 @@ export class Parser {
 		const location = this.parseLocation();
 
 		// Expect 'exists'
-		this.expect('exists');
+		this.expect("exists");
 
 		// Parse pattern
 		const patternToken = this.peek();
-		if (patternToken?.type !== 'identifier') {
-			throw new Error(
-				`Expected pattern after 'exists' at line ${patternToken?.line}, column ${patternToken?.column}`
-			);
+		if (patternToken?.type !== "identifier") {
+			throw new Error(`Expected pattern after 'exists' at line ${patternToken?.line}, column ${patternToken?.column}`);
 		}
 		const pattern = this.advance().value;
 
 		return {
-			type: 'exists',
+			type: "exists",
 			location,
 			pattern,
 			negated: null,
@@ -146,7 +137,7 @@ export class Parser {
 		const predicates = [this.parsePredicate()];
 
 		// Collect all 'and' chained predicates
-		while (this.match('and')) {
+		while (this.match("and")) {
 			this.advance();
 			predicates.push(this.parsePredicate());
 		}
@@ -154,7 +145,7 @@ export class Parser {
 		// Single predicate
 		if (predicates.length === 1) {
 			return {
-				type: 'predicate',
+				type: "predicate",
 				left: null,
 				right: null,
 				predicate: predicates[0],
@@ -164,7 +155,7 @@ export class Parser {
 		// Multiple predicates - chain them with 'and'
 		// Build from right to left: (a AND (b AND c))
 		let condition = {
-			type: 'and',
+			type: "and",
 			left: predicates[predicates.length - 2],
 			right: predicates[predicates.length - 1],
 			predicate: null,
@@ -172,7 +163,7 @@ export class Parser {
 
 		for (let i = predicates.length - 3; i >= 0; i--) {
 			condition = {
-				type: 'and',
+				type: "and",
 				left: predicates[i],
 				right: /** @type {Predicate} */ (/** @type {unknown} */ (condition)),
 				predicate: null,
@@ -190,31 +181,27 @@ export class Parser {
 		const token = this.peek();
 
 		// Skip EOF
-		if (token?.type === 'eof') {
+		if (token?.type === "eof") {
 			return null;
 		}
 
 		// Parse action (only 'delete' for now)
-		if (!this.match('delete')) {
-			throw new Error(
-				`Expected 'delete' action at line ${token?.line}, column ${token?.column}`
-			);
+		if (!this.match("delete")) {
+			throw new Error(`Expected 'delete' action at line ${token?.line}, column ${token?.column}`);
 		}
 		this.advance();
-		const action = /** @type {ActionType} */ ('delete');
+		const action = /** @type {ActionType} */ ("delete");
 
 		// Parse target
 		const targetToken = this.peek();
-		if (targetToken?.type !== 'identifier') {
-			throw new Error(
-				`Expected target pattern at line ${targetToken?.line}, column ${targetToken?.column}`
-			);
+		if (targetToken?.type !== "identifier") {
+			throw new Error(`Expected target pattern at line ${targetToken?.line}, column ${targetToken?.column}`);
 		}
 		const target = this.advance().value;
 
 		// Parse optional condition
 		let condition = null;
-		if (this.match('when')) {
+		if (this.match("when")) {
 			this.advance();
 			condition = this.parseCondition();
 		}
@@ -233,7 +220,7 @@ export class Parser {
 	parse() {
 		const rules = [];
 
-		while (this.peek()?.type !== 'eof') {
+		while (this.peek()?.type !== "eof") {
 			const rule = this.parseRule();
 			if (rule) {
 				rules.push(rule);

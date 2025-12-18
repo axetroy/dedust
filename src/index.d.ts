@@ -1,4 +1,4 @@
-import { Rule } from './parser.js';
+import { Rule } from "./parser.js";
 
 /**
  * Parse DSL text into rules
@@ -7,12 +7,12 @@ import { Rule } from './parser.js';
  * @example
  * ```js
  * import { parseRules } from 'dust';
- * 
+ *
  * const dsl = `
  *   delete target when exists Cargo.toml
  *   delete node_modules when exists package.json
  * `;
- * 
+ *
  * const rules = parseRules(dsl);
  * console.log(rules);
  * ```
@@ -27,7 +27,7 @@ export function parseRules(input: string): Rule[];
  * @example
  * ```js
  * import { findTargets } from 'dust';
- * 
+ *
  * const dsl = `delete *.log`;
  * const targets = await findTargets(dsl, '/path/to/project');
  * console.log('Would delete:', targets);
@@ -55,12 +55,12 @@ export interface ExecutionResult {
  * @example
  * ```js
  * import { executeCleanup } from 'dust';
- * 
+ *
  * const dsl = `
  *   delete target when exists Cargo.toml
  *   delete node_modules when exists package.json
  * `;
- * 
+ *
  * const result = await executeCleanup(dsl, '/path/to/project');
  * console.log('Deleted:', result.deleted);
  * console.log('Errors:', result.errors);
@@ -75,15 +75,15 @@ declare const _default: {
 	parseRules: typeof parseRules;
 	findTargets: typeof findTargets;
 	executeCleanup: typeof executeCleanup;
-	tokenize: typeof import('./tokenizer.js').tokenize;
-	parse: typeof import('./parser.js').parse;
-	evaluate: typeof import('./evaluator.js').evaluate;
-	executeRules: typeof import('./evaluator.js').executeRules;
+	tokenize: typeof import("./tokenizer.js").tokenize;
+	parse: typeof import("./parser.js").parse;
+	evaluate: typeof import("./evaluator.js").evaluate;
+	executeRules: typeof import("./evaluator.js").executeRules;
 };
 
 export default _default;
 
 // Re-export types
-export type { Rule, ActionType, LocationType, Condition, Predicate } from './parser.js';
-export type { Token, TokenType } from './tokenizer.js';
-export type { EvaluationContext } from './evaluator.js';
+export type { Rule, ActionType, LocationType, Condition, Predicate } from "./parser.js";
+export type { Token, TokenType } from "./tokenizer.js";
+export type { EvaluationContext } from "./evaluator.js";
