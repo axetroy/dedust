@@ -1,5 +1,3 @@
-[English](./spec.md) | 中文
-
 # dust
 
 A DSL-based garbage file cleanup tool for managing build artifacts, dependencies, and temporary files across projects.
@@ -170,11 +168,7 @@ const targets = await findTargets("delete *.log", "/path/to/project");
 console.log("Would delete:", targets);
 
 // Multiple directories
-const targets = await findTargets("delete *.log", [
-	"/path/to/project1",
-	"/path/to/project2",
-	"/path/to/project3",
-]);
+const targets = await findTargets("delete *.log", ["/path/to/project1", "/path/to/project2", "/path/to/project3"]);
 console.log("Would delete:", targets);
 ```
 
@@ -193,10 +187,7 @@ console.log("Deleted:", result.deleted);
 console.log("Errors:", result.errors);
 
 // Multiple directories
-const result = await executeCleanup("delete *.log", [
-	"/path/to/workspace1",
-	"/path/to/workspace2",
-]);
+const result = await executeCleanup("delete *.log", ["/path/to/workspace1", "/path/to/workspace2"]);
 console.log("Deleted:", result.deleted);
 console.log("Errors:", result.errors);
 ```
@@ -259,14 +250,14 @@ const result = await executeCleanupWithEvents("delete *.log", "/path/to/project"
 
 #### Available Event Listeners
 
-| Event Listener       | Description                           | Data Type          |
-| -------------------- | ------------------------------------- | ------------------ |
-| `onFileFound`        | Called when a file is found           | `FileFoundEvent`   |
-| `onFileDeleted`      | Called when a file is deleted         | `FileDeletedEvent` |
-| `onError`            | Called when an error occurs           | `ErrorEvent`       |
-| `onScanStart`        | Called when scanning starts           | `ScanStartEvent`   |
-| `onScanDirectory`    | Called when scanning each directory   | `ScanDirectoryEvent` |
-| `onScanComplete`     | Called when scanning completes        | `ScanCompleteEvent` |
+| Event Listener    | Description                         | Data Type            |
+| ----------------- | ----------------------------------- | -------------------- |
+| `onFileFound`     | Called when a file is found         | `FileFoundEvent`     |
+| `onFileDeleted`   | Called when a file is deleted       | `FileDeletedEvent`   |
+| `onError`         | Called when an error occurs         | `ErrorEvent`         |
+| `onScanStart`     | Called when scanning starts         | `ScanStartEvent`     |
+| `onScanDirectory` | Called when scanning each directory | `ScanDirectoryEvent` |
+| `onScanComplete`  | Called when scanning completes      | `ScanCompleteEvent`  |
 
 ### Multiple Directories
 
@@ -281,26 +272,20 @@ const dsl = `
 `;
 
 // Scan multiple directories
-const targets = await findTargets(dsl, [
-	"/home/user/workspace/project1",
-	"/home/user/workspace/project2",
-	"/home/user/workspace/project3",
-]);
+const targets = await findTargets(dsl, ["/home/user/workspace/project1", "/home/user/workspace/project2", "/home/user/workspace/project3"]);
 
 // Execute cleanup across multiple directories
-const result = await executeCleanup(dsl, [
-	"/var/www/app1",
-	"/var/www/app2",
-]);
+const result = await executeCleanup(dsl, ["/var/www/app1", "/var/www/app2"]);
 
 console.log(`Cleaned ${result.deleted.length} files across multiple directories`);
 ```
 
 **Benefits:**
-- Single DSL execution across multiple projects
-- Consolidated results
-- More efficient than running separately
-- Events are emitted for all directories
+
+-   Single DSL execution across multiple projects
+-   Consolidated results
+-   More efficient than running separately
+-   Events are emitted for all directories
 
 ### Advanced Usage
 
