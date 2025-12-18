@@ -1,6 +1,9 @@
 /**
  * Simple glob pattern matching
  * Supports *, **, ?, and basic patterns
+ * 
+ * Note: Glob patterns use forward slashes (/) by convention, even on Windows.
+ * This is standard behavior for glob patterns across all platforms.
  */
 
 function minimatch(str, pattern) {

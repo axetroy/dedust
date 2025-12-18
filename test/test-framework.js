@@ -70,8 +70,11 @@ async function runTests() {
       } catch (e) {
         console.log(`  ✗ ${test.name}`);
         console.log(`    ${e.message}`);
-        if (e.stack) {
-          console.log(`    ${e.stack.split('\n').slice(1).join('\n    ')}`);
+        if (e.stack && typeof e.stack === 'string') {
+          const stackLines = e.stack.split('\n').slice(1);
+          if (stackLines.length > 0) {
+            console.log(`    ${stackLines.join('\n    ')}`);
+          }
         }
         failed++;
       }

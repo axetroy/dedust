@@ -53,7 +53,8 @@ function main() {
       dryRun = true;
     } else if (!rulesFile) {
       rulesFile = arg;
-    } else if (i === args.length - 1 || args[i + 1].startsWith('-')) {
+    } else {
+      // Last non-option argument is the target directory
       targetDir = arg;
     }
   }
