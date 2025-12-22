@@ -7,11 +7,6 @@
   resolved "https://registry.npmjs.org/@ast-grep/napi-linux-x64-gnu/-/napi-linux-x64-gnu-0.37.0.tgz"
   integrity sha512-TViz5/klqre6aSmJzswEIjApnGjJzstG/SE8VDWsrftMBMYt2PTu3MeluZVwzSqDao8doT/P+6U11dU05UOgxw==
 
-"@ast-grep/napi-linux-x64-musl@0.37.0":
-  version "0.37.0"
-  resolved "https://registry.npmjs.org/@ast-grep/napi-linux-x64-musl/-/napi-linux-x64-musl-0.37.0.tgz"
-  integrity sha512-/BcCH33S9E3ovOAEoxYngUNXgb+JLg991sdyiNP2bSoYd30a9RHrG7CYwW6fMgua3ijQ474eV6cq9yZO1bCpXg==
-
 "@ast-grep/napi@0.37.0":
   version "0.37.0"
   resolved "https://registry.npmjs.org/@ast-grep/napi/-/napi-0.37.0.tgz"
@@ -130,11 +125,6 @@
   resolved "https://registry.npmjs.org/@oxc-resolver/binding-linux-x64-gnu/-/binding-linux-x64-gnu-11.13.2.tgz"
   integrity sha512-DVo6jS8n73yNAmCsUOOk2vBeC60j2RauDXQM8p7RDl0afsEaA2le22vD8tky7iNoM5tsxfBmE4sOJXEKgpwWRw==
 
-"@oxc-resolver/binding-linux-x64-musl@11.13.2":
-  version "11.13.2"
-  resolved "https://registry.npmjs.org/@oxc-resolver/binding-linux-x64-musl/-/binding-linux-x64-musl-11.13.2.tgz"
-  integrity sha512-6WqrE+hQBFP35KdwQjWcZpldbTq6yJmuTVThISu+rY3+j6MaDp2ciLHTr1X68r2H/7ocOIl4k3NnOVIzeRJE3w==
-
 "@rsbuild/core@~1.6.6", "@rsbuild/core@1.x":
   version "1.6.6"
   resolved "https://registry.npmjs.org/@rsbuild/core/-/core-1.6.6.tgz"
@@ -158,11 +148,6 @@
   version "1.6.3"
   resolved "https://registry.npmjs.org/@rspack/binding-linux-x64-gnu/-/binding-linux-x64-gnu-1.6.3.tgz"
   integrity sha512-/W8/X3CBGVY7plii5eUzyIEyCKiYx1lqrSVuD1HLlVHvzC4H2Kpk0EwvY2gUhnQRLU0Ym77Sh4PRd1ZOOzP4LQ==
-
-"@rspack/binding-linux-x64-musl@1.6.3":
-  version "1.6.3"
-  resolved "https://registry.npmjs.org/@rspack/binding-linux-x64-musl/-/binding-linux-x64-musl-1.6.3.tgz"
-  integrity sha512-h0Q3aM0fkRCd330DfRGZ9O3nk/rfRyXRX4dEIoLcLAq34VOmp3HZUP7rEy7feiJbuU4Atcvd0MD7U6RLwa1umQ==
 
 "@rspack/binding@1.6.3":
   version "1.6.3"
