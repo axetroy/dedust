@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { readFileSync, existsSync } from "fs";
-import { resolve, join } from "path";
+import { resolve, join, dirname } from "path";
+import { fileURLToPath } from "url";
 import { executeCleanupWithEvents, findTargetsWithEvents } from "../dist/esm/index.mjs";
 
 const args = process.argv.slice(2);
@@ -77,7 +78,9 @@ Examples:
 if (flags.version) {
 	// Read version from package.json
 	try {
-		const packageJsonPath = resolve(new URL(import.meta.url).pathname, "../../package.json");
+		const __filename = fileURLToPath(import.meta.url);
+		const __dirname = dirname(__filename);
+		const packageJsonPath = resolve(__dirname, "../package.json");
 		const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
 		console.log(packageJson.version);
 	} catch (error) {
