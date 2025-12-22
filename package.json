@@ -65,6 +65,7 @@
         "url": "git+https://github.com/axetroy/dedust.git"
     },
     "dependencies": {
-        "glob": "^13.0.0"
+        "glob": "^13.0.0",
+        "minimatch": "^10.1.1"
     }
 }
