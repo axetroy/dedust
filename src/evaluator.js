@@ -81,8 +81,9 @@ export class Evaluator extends EventEmitter {
 		// Check against each ignore pattern
 		for (const pattern of this.ignorePatterns) {
 			// If pattern ends with /**, also match the directory itself
-			if (pattern.endsWith('/**')) {
-				const dirPattern = pattern.slice(0, -3); // Remove /**
+			const RECURSIVE_SUFFIX = '/**';
+			if (pattern.endsWith(RECURSIVE_SUFFIX)) {
+				const dirPattern = pattern.slice(0, -RECURSIVE_SUFFIX.length);
 				if (minimatch(relativePath, dirPattern, { dot: true, matchBase: true })) {
 					return true;
 				}
@@ -94,6 +95,7 @@ export class Evaluator extends EventEmitter {
 			}
 			
 			// Also check if any parent directory matches
+			// Early termination: stop checking once we find a match
 			const parts = relativePath.split(path.sep);
 			for (let i = 0; i < parts.length; i++) {
 				const partial = parts.slice(0, i + 1).join(path.sep);
