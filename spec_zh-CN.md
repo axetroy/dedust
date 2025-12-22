@@ -1,3 +1,5 @@
+[English](./spec.md) | 中文
+
 # Dedust 规则语言 (DRL) 设计规范
 
 > 本文定义了 **Dedust 规则语言（Dedust Rule Language，简称 DRL）**，一种 **面向人类、可读可写、行式的清理规则 DSL**，用于描述"在什么上下文条件下，应清理哪些文件或目录"。

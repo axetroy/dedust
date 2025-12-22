@@ -1,4 +1,4 @@
-English | [中文](./spec_CN.md)
+English | [中文](./spec_zh-CN.md)
 
 # Dedust Rule Language (DRL) Design Specification
 
