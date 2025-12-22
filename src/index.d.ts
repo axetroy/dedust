@@ -1,6 +1,17 @@
 import { Rule } from "./parser.js";
 
 /**
+ * Options for cleanup operations
+ */
+export interface CleanupOptions {
+	/**
+	 * Patterns to ignore during cleanup (supports glob patterns)
+	 * @example ['.git', 'node_modules', '*.keep', 'important/**']
+	 */
+	ignore?: string[];
+}
+
+/**
  * Parse DSL text into rules
  * @param input - The DSL text to parse
  * @returns Array of parsed rules
@@ -23,22 +34,28 @@ export function parseRules(input: string): Rule[];
  * Evaluate rules and find targets to delete (dry run)
  * @param rulesOrDsl - DSL text or parsed rules
  * @param baseDirs - Base directory or directories to evaluate from
+ * @param options - Options including ignore patterns
  * @returns Array of file paths that would be deleted
  * @example
  * ```js
  * import { findTargets } from 'dedust';
  *
  * const dsl = `delete *.log`;
- * 
+ *
  * // Single directory
  * const targets = await findTargets(dsl, '/path/to/project');
- * 
+ *
  * // Multiple directories
  * const targets = await findTargets(dsl, ['/path/to/project1', '/path/to/project2']);
+ *
+ * // With ignore patterns
+ * const targets = await findTargets(dsl, '/path/to/project', {
+ *   ignore: ['.git', 'node_modules', '*.keep']
+ * });
  * console.log('Would delete:', targets);
  * ```
  */
-export function findTargets(rulesOrDsl: string | Rule[], baseDirs: string | string[]): Promise<string[]>;
+export function findTargets(rulesOrDsl: string | Rule[], baseDirs: string | string[], options?: CleanupOptions): Promise<string[]>;
 
 /**
  * Result of executing cleanup
@@ -57,6 +74,7 @@ export interface ExecutionResult {
  * Execute rules and delete matching files/directories
  * @param rulesOrDsl - DSL text or parsed rules
  * @param baseDirs - Base directory or directories to execute from
+ * @param options - Options including ignore patterns
  * @example
  * ```js
  * import { executeCleanup } from 'dedust';
@@ -68,14 +86,23 @@ export interface ExecutionResult {
  *
  * // Single directory
  * const result = await executeCleanup(dsl, '/path/to/project');
- * 
+ *
  * // Multiple directories
  * const result = await executeCleanup(dsl, ['/path1', '/path2']);
+ *
+ * // With ignore patterns
+ * const result = await executeCleanup(dsl, '/path/to/project', {
+ *   ignore: ['.git', 'node_modules/**', '*.keep']
+ * });
  * console.log('Deleted:', result.deleted);
  * console.log('Errors:', result.errors);
  * ```
  */
-export function executeCleanup(rulesOrDsl: string | Rule[], baseDirs: string | string[]): Promise<ExecutionResult>;
+export function executeCleanup(
+	rulesOrDsl: string | Rule[],
+	baseDirs: string | string[],
+	options?: CleanupOptions
+): Promise<ExecutionResult>;
 
 /**
  * Event listener callback
@@ -105,6 +132,7 @@ export interface EventListeners {
  * @param rulesOrDsl - DSL text or parsed rules
  * @param baseDirs - Base directory or directories to evaluate from
  * @param listeners - Event listeners
+ * @param options - Options including ignore patterns
  * @returns Array of file paths that would be deleted
  * @example
  * ```js
@@ -115,17 +143,26 @@ export interface EventListeners {
  *   onFileFound: (data) => console.log('Found:', data.path),
  *   onScanComplete: (data) => console.log('Found', data.filesFound, 'files')
  * });
- * 
+ *
  * // Multiple directories
  * const targets = await findTargetsWithEvents(dsl, ['/path1', '/path2'], {
  *   onFileFound: (data) => console.log('Found:', data.path)
  * });
+ *
+ * // With ignore patterns
+ * const targets = await findTargetsWithEvents(dsl, '/path/to/project',
+ *   {
+ *     onFileFound: (data) => console.log('Found:', data.path)
+ *   },
+ *   { ignore: ['.git'] }
+ * );
  * ```
  */
 export function findTargetsWithEvents(
 	rulesOrDsl: string | Rule[],
 	baseDirs: string | string[],
-	listeners?: EventListeners
+	listeners?: EventListeners,
+	options?: CleanupOptions
 ): Promise<string[]>;
 
 /**
@@ -133,6 +170,7 @@ export function findTargetsWithEvents(
  * @param rulesOrDsl - DSL text or parsed rules
  * @param baseDirs - Base directory or directories to execute from
  * @param listeners - Event listeners
+ * @param options - Options including ignore patterns
  * @example
  * ```js
  * import { executeCleanupWithEvents } from 'dedust';
@@ -143,17 +181,26 @@ export function findTargetsWithEvents(
  *   onFileDeleted: (data) => console.log('Deleted:', data.path),
  *   onError: (data) => console.error('Error:', data.error)
  * });
- * 
+ *
  * // Multiple directories
  * const result = await executeCleanupWithEvents(dsl, ['/path1', '/path2'], {
  *   onFileDeleted: (data) => console.log('Deleted:', data.path)
  * });
+ *
+ * // With ignore patterns
+ * const result = await executeCleanupWithEvents(dsl, '/path/to/project',
+ *   {
+ *     onFileDeleted: (data) => console.log('Deleted:', data.path)
+ *   },
+ *   { ignore: ['.git', 'node_modules'] }
+ * );
  * ```
  */
 export function executeCleanupWithEvents(
 	rulesOrDsl: string | Rule[],
 	baseDirs: string | string[],
-	listeners?: EventListeners
+	listeners?: EventListeners,
+	options?: CleanupOptions
 ): Promise<ExecutionResult>;
 
 /**
@@ -185,3 +232,8 @@ export type {
 	ScanDirectoryEvent,
 	ScanCompleteEvent,
 } from "./evaluator.js";
+
+// Export classes for advanced usage
+export { Tokenizer } from "./tokenizer.js";
+export { Parser } from "./parser.js";
+export { Evaluator } from "./evaluator.js";

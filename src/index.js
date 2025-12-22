@@ -7,6 +7,11 @@ import { evaluate, executeRules, Evaluator } from "./evaluator.js";
  */
 
 /**
+ * @typedef {Object} CleanupOptions
+ * @property {string[]} [ignore] - Patterns to ignore during cleanup (supports glob patterns)
+ */
+
+/**
  * Parse DSL text into rules
  * @param {string} input - The DSL text to parse
  * @returns {Rule[]} Array of parsed rules
@@ -32,6 +37,7 @@ export function parseRules(input) {
  * Evaluate rules and find targets to delete (dry run)
  * @param {string | Rule[]} rulesOrDsl - DSL text or parsed rules
  * @param {string | string[]} baseDirs - Base directory or directories to evaluate from
+ * @param {CleanupOptions} [options] - Options including ignore patterns
  * @returns {Promise<string[]>} Array of file paths that would be deleted
  * @example
  * ```js
@@ -44,16 +50,22 @@ export function parseRules(input) {
  * 
  * // Multiple directories
  * const targets = await findTargets(dsl, ['/path/to/project1', '/path/to/project2']);
+ * 
+ * // With ignore patterns
+ * const targets = await findTargets(dsl, '/path/to/project', { 
+ *   ignore: ['.git', 'node_modules'] 
+ * });
  * console.log('Would delete:', targets);
  * ```
  */
-export async function findTargets(rulesOrDsl, baseDirs) {
+export async function findTargets(rulesOrDsl, baseDirs, options = {}) {
 	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
 	const dirs = Array.isArray(baseDirs) ? baseDirs : [baseDirs];
+	const ignorePatterns = options.ignore || [];
 	
 	const allTargets = new Set();
 	for (const dir of dirs) {
-		const targets = await evaluate(rules, dir, true);
+		const targets = await evaluate(rules, dir, true, ignorePatterns);
 		targets.forEach(target => allTargets.add(target));
 	}
 	
@@ -64,6 +76,7 @@ export async function findTargets(rulesOrDsl, baseDirs) {
  * Execute rules and delete matching files/directories
  * @param {string | Rule[]} rulesOrDsl - DSL text or parsed rules
  * @param {string | string[]} baseDirs - Base directory or directories to execute from
+ * @param {CleanupOptions} [options] - Options including ignore patterns
  * @returns {Promise<{deleted: string[], errors: Array<{path: string, error: Error}>}>}
  * @example
  * ```js
@@ -79,19 +92,25 @@ export async function findTargets(rulesOrDsl, baseDirs) {
  * 
  * // Multiple directories
  * const result = await executeCleanup(dsl, ['/path/to/project1', '/path/to/project2']);
+ * 
+ * // With ignore patterns
+ * const result = await executeCleanup(dsl, '/path/to/project', {
+ *   ignore: ['.git', '*.keep', 'important/**']
+ * });
  * console.log('Deleted:', result.deleted);
  * console.log('Errors:', result.errors);
  * ```
  */
-export async function executeCleanup(rulesOrDsl, baseDirs) {
+export async function executeCleanup(rulesOrDsl, baseDirs, options = {}) {
 	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
 	const dirs = Array.isArray(baseDirs) ? baseDirs : [baseDirs];
+	const ignorePatterns = options.ignore || [];
 	
 	const allDeleted = [];
 	const allErrors = [];
 	
 	for (const dir of dirs) {
-		const result = await executeRules(rules, dir);
+		const result = await executeRules(rules, dir, ignorePatterns);
 		allDeleted.push(...result.deleted);
 		allErrors.push(...result.errors);
 	}
@@ -120,6 +139,7 @@ export async function executeCleanup(rulesOrDsl, baseDirs) {
  * @param {string | Rule[]} rulesOrDsl - DSL text or parsed rules
  * @param {string | string[]} baseDirs - Base directory or directories to evaluate from
  * @param {EventListeners} listeners - Event listeners
+ * @param {CleanupOptions} [options] - Options including ignore patterns
  * @returns {Promise<string[]>} Array of file paths that would be deleted
  * @example
  * ```js
@@ -135,16 +155,25 @@ export async function executeCleanup(rulesOrDsl, baseDirs) {
  * const targets = await findTargetsWithEvents(dsl, ['/path1', '/path2'], {
  *   onFileFound: (data) => console.log('Found:', data.path)
  * });
+ * 
+ * // With ignore patterns
+ * const targets = await findTargetsWithEvents(dsl, '/path/to/project', 
+ *   {
+ *     onFileFound: (data) => console.log('Found:', data.path)
+ *   },
+ *   { ignore: ['.git'] }
+ * );
  * ```
  */
-export async function findTargetsWithEvents(rulesOrDsl, baseDirs, listeners = {}) {
+export async function findTargetsWithEvents(rulesOrDsl, baseDirs, listeners = {}, options = {}) {
 	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
 	const dirs = Array.isArray(baseDirs) ? baseDirs : [baseDirs];
+	const ignorePatterns = options.ignore || [];
 	
 	const allTargets = new Set();
 	
 	for (const dir of dirs) {
-		const evaluator = new Evaluator(rules, dir);
+		const evaluator = new Evaluator(rules, dir, ignorePatterns);
 
 		// Attach event listeners
 		if (listeners.onFileFound) {
@@ -175,6 +204,7 @@ export async function findTargetsWithEvents(rulesOrDsl, baseDirs, listeners = {}
  * @param {string | Rule[]} rulesOrDsl - DSL text or parsed rules
  * @param {string | string[]} baseDirs - Base directory or directories to execute from
  * @param {EventListeners} listeners - Event listeners
+ * @param {CleanupOptions} [options] - Options including ignore patterns
  * @returns {Promise<{deleted: string[], errors: Array<{path: string, error: Error}>}>}
  * @example
  * ```js
@@ -191,17 +221,26 @@ export async function findTargetsWithEvents(rulesOrDsl, baseDirs, listeners = {}
  * const result = await executeCleanupWithEvents(dsl, ['/path1', '/path2'], {
  *   onFileDeleted: (data) => console.log('Deleted:', data.path)
  * });
+ * 
+ * // With ignore patterns
+ * const result = await executeCleanupWithEvents(dsl, '/path/to/project',
+ *   {
+ *     onFileDeleted: (data) => console.log('Deleted:', data.path)
+ *   },
+ *   { ignore: ['.git', 'node_modules'] }
+ * );
  * ```
  */
-export async function executeCleanupWithEvents(rulesOrDsl, baseDirs, listeners = {}) {
+export async function executeCleanupWithEvents(rulesOrDsl, baseDirs, listeners = {}, options = {}) {
 	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
 	const dirs = Array.isArray(baseDirs) ? baseDirs : [baseDirs];
+	const ignorePatterns = options.ignore || [];
 	
 	const allDeleted = [];
 	const allErrors = [];
 	
 	for (const dir of dirs) {
-		const evaluator = new Evaluator(rules, dir);
+		const evaluator = new Evaluator(rules, dir, ignorePatterns);
 
 		// Attach event listeners
 		if (listeners.onFileFound) {

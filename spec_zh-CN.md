@@ -1,3 +1,5 @@
+[English](./spec.md) | 中文
+
 # Dedust 规则语言 (DRL) 设计规范
 
 > 本文定义了 **Dedust 规则语言（Dedust Rule Language，简称 DRL）**，一种 **面向人类、可读可写、行式的清理规则 DSL**，用于描述"在什么上下文条件下，应清理哪些文件或目录"。
@@ -37,13 +39,14 @@
 
 ### 2.2 执行动作（Action）
 
-当前版本仅定义一个核心动作：
+当前版本定义两个核心动作：
 
-| 动作     | 含义                 |
-| -------- | -------------------- |
-| `delete` | 删除匹配的文件或目录 |
+| 动作     | 含义                     |
+| -------- | ------------------------ |
+| `delete` | 删除匹配的文件或目录     |
+| `ignore` | 忽略匹配的文件或目录     |
 
-（未来可扩展：`ignore` / `warn` / `dry-run` 等）
+`ignore` 动作用于排除某些文件或目录，使其不被删除规则处理。被忽略的目录不会被遍历，可以提高性能。
 
 ---
 
@@ -72,6 +75,44 @@ node_modules
 - 相对基准由规则的上下文决定
 - 包含空格的模式必须用引号（单引号或双引号）括起来
 - 在引号字符串中，支持转义序列：`\n`、`\t`、`\\`、`\'`、`\"`
+
+---
+
+### 2.4 忽略规则（Ignore）
+
+忽略规则用于排除某些文件或目录，使其不被删除：
+
+```
+ignore .git
+ignore node_modules
+ignore *.keep
+```
+
+**特点：**
+
+- 支持所有 glob 模式（如 `*.log`、`.git/**`、`important.*`）
+- 被忽略的目录不会被递归遍历（性能优化）
+- 可以与 API 级别的 ignore 选项结合使用
+- ignore 规则不支持条件（when），语法更简单
+
+**示例：**
+
+```text
+# 忽略版本控制目录
+ignore .git
+ignore .svn
+
+# 忽略依赖目录
+ignore node_modules/**
+
+# 忽略重要文件
+ignore *.keep
+ignore important/**
+
+# 然后定义删除规则
+delete target when exists Cargo.toml
+delete *.log
+```
 
 ---
 
@@ -207,7 +248,7 @@ for each directory D (recursive):
 
 ```
 Rule        ::= Action Target [ "when" Condition ]
-Action      ::= "delete"
+Action      ::= "delete" | "ignore"
 Target      ::= PathPattern
 Condition   ::= Predicate ( "and" Predicate )*
 Predicate   ::= [ Location ] "exists" PathPattern
@@ -228,6 +269,10 @@ PathPattern ::= glob-pattern | quoted-string
 ## 8. 示例规则文件
 
 ```text
+# 忽略版本控制目录
+ignore .git
+ignore .svn
+
 # Rust
 delete target when exists Cargo.toml
 
@@ -269,6 +314,10 @@ DRL 的默认配置文件名为 **`dedust.rules`**。
 
 ```text
 # 这是一个 dedust.rules 配置文件
+
+# 忽略规则
+ignore .git
+ignore node_modules
 
 # Rust 项目
 delete target when exists Cargo.toml

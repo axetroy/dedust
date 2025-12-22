@@ -105,8 +105,15 @@ export class Evaluator extends EventEmitter {
 	 * Create a new evaluator
 	 * @param rules - Array of rules to evaluate
 	 * @param baseDir - Base directory to start evaluation from
+	 * @param ignorePatterns - Patterns to ignore during evaluation
 	 */
-	constructor(rules: Rule[], baseDir: string);
+	constructor(rules: Rule[], baseDir: string, ignorePatterns?: string[]);
+
+	/**
+	 * Check if a path should be ignored
+	 * @param filePath - The path to check
+	 */
+	shouldIgnore(filePath: string): boolean;
 
 	/**
 	 * Check if a file or directory exists matching a pattern
@@ -182,12 +189,14 @@ export class Evaluator extends EventEmitter {
  * @param rules - Array of rules to evaluate
  * @param baseDir - Base directory to evaluate from
  * @param dryRun - If true, don't actually delete files
+ * @param ignorePatterns - Patterns to ignore during evaluation
  */
-export function evaluate(rules: Rule[], baseDir: string, dryRun?: boolean): Promise<string[]>;
+export function evaluate(rules: Rule[], baseDir: string, dryRun?: boolean, ignorePatterns?: string[]): Promise<string[]>;
 
 /**
  * Execute deletion of targets
  * @param rules - Array of rules to execute
  * @param baseDir - Base directory to execute from
+ * @param ignorePatterns - Patterns to ignore during execution
  */
-export function executeRules(rules: Rule[], baseDir: string): Promise<ExecutionResult>;
+export function executeRules(rules: Rule[], baseDir: string, ignorePatterns?: string[]): Promise<ExecutionResult>;

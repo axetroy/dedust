@@ -2,6 +2,7 @@ import { glob } from "glob";
 import path from "node:path";
 import fs from "node:fs";
 import { EventEmitter } from "node:events";
+import { minimatch } from "minimatch";
 
 /**
  * @typedef {import('./parser.js').Rule} Rule
@@ -53,11 +54,56 @@ export class Evaluator extends EventEmitter {
 	/**
 	 * @param {Rule[]} rules
 	 * @param {string} baseDir - The base directory to start evaluation from
+	 * @param {string[]} ignorePatterns - Patterns to ignore during evaluation
 	 */
-	constructor(rules, baseDir) {
+	constructor(rules, baseDir, ignorePatterns = []) {
 		super();
 		this.rules = rules;
 		this.baseDir = path.resolve(baseDir);
+
+		// Extract ignore patterns from rules and merge with API ignore patterns
+		const dslIgnorePatterns = rules.filter((rule) => rule.action === "ignore").map((rule) => rule.target);
+
+		this.ignorePatterns = [...dslIgnorePatterns, ...ignorePatterns];
+	}
+
+	/**
+	 * Check if a path should be ignored
+	 * @param {string} filePath - The path to check
+	 * @returns {boolean}
+	 */
+	shouldIgnore(filePath) {
+		// Get relative path from baseDir
+		const relativePath = path.relative(this.baseDir, filePath);
+
+		// Check against each ignore pattern
+		for (const pattern of this.ignorePatterns) {
+			// If pattern ends with /**, also match the directory itself
+			const RECURSIVE_SUFFIX = "/**";
+			if (pattern.endsWith(RECURSIVE_SUFFIX)) {
+				const dirPattern = pattern.slice(0, -RECURSIVE_SUFFIX.length);
+				if (minimatch(relativePath, dirPattern, { dot: true, matchBase: true })) {
+					return true;
+				}
+			}
+
+			// Match against relative path
+			if (minimatch(relativePath, pattern, { dot: true, matchBase: true })) {
+				return true;
+			}
+
+			// Also check if any parent directory matches
+			// Early termination: stop checking once we find a match
+			const parts = relativePath.split(path.sep);
+			for (let i = 0; i < parts.length; i++) {
+				const partial = parts.slice(0, i + 1).join(path.sep);
+				if (minimatch(partial, pattern, { dot: true, matchBase: true })) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -253,6 +299,10 @@ export class Evaluator extends EventEmitter {
 				for (const entry of entries) {
 					if (entry.isDirectory()) {
 						const fullPath = path.join(d, entry.name);
+						// Skip ignored directories
+						if (this.shouldIgnore(fullPath)) {
+							continue;
+						}
 						dirs.push(fullPath);
 						collectDirs(fullPath);
 					}
@@ -289,7 +339,7 @@ export class Evaluator extends EventEmitter {
 			// For simple patterns without glob, check directly
 			if (!/[*?[\]{}]/.test(pattern)) {
 				const fullPath = path.join(dir, pattern);
-				if (fs.existsSync(fullPath)) {
+				if (fs.existsSync(fullPath) && !this.shouldIgnore(fullPath)) {
 					targets.push(fullPath);
 					this.emit("file:found", { path: fullPath, rule, directory: dir });
 				}
@@ -304,6 +354,10 @@ export class Evaluator extends EventEmitter {
 				dot: true,
 			});
 			for (const match of matches) {
+				// Skip ignored paths
+				if (this.shouldIgnore(match)) {
+					continue;
+				}
 				targets.push(match);
 				this.emit("file:found", { path: match, rule, directory: dir });
 			}
@@ -365,8 +419,20 @@ export class Evaluator extends EventEmitter {
 		const deleted = [];
 		const errors = [];
 
-		for (const target of targets) {
+		// Sort targets by depth (deepest first) to avoid deleting parent before child
+		const sortedTargets = targets.slice().sort((a, b) => {
+			const depthA = a.split(path.sep).length;
+			const depthB = b.split(path.sep).length;
+			return depthB - depthA; // Deeper paths first
+		});
+
+		for (const target of sortedTargets) {
 			try {
+				// Check if file/directory still exists (may have been deleted with parent)
+				if (!fs.existsSync(target)) {
+					continue;
+				}
+
 				// Check if it's a directory or file
 				const stats = fs.statSync(target);
 				const isDirectory = stats.isDirectory();
@@ -399,10 +465,11 @@ export class Evaluator extends EventEmitter {
  * @param {Rule[]} rules
  * @param {string} baseDir
  * @param {boolean} dryRun
+ * @param {string[]} ignorePatterns
  * @returns {Promise<string[]>}
  */
-export async function evaluate(rules, baseDir, dryRun = true) {
-	const evaluator = new Evaluator(rules, baseDir);
+export async function evaluate(rules, baseDir, dryRun = true, ignorePatterns = []) {
+	const evaluator = new Evaluator(rules, baseDir, ignorePatterns);
 	return evaluator.evaluate(dryRun);
 }
 
@@ -410,10 +477,11 @@ export async function evaluate(rules, baseDir, dryRun = true) {
  * Execute deletion of targets
  * @param {Rule[]} rules
  * @param {string} baseDir
+ * @param {string[]} ignorePatterns
  * @returns {Promise<{deleted: string[], errors: Array<{path: string, error: Error}>}>}
  */
-export async function executeRules(rules, baseDir) {
-	const evaluator = new Evaluator(rules, baseDir);
+export async function executeRules(rules, baseDir, ignorePatterns = []) {
+	const evaluator = new Evaluator(rules, baseDir, ignorePatterns);
 	const targets = await evaluator.evaluate(true);
 	return evaluator.execute(targets);
 }
