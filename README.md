@@ -71,6 +71,7 @@ console.log("Errors:", result.errors);
 ### Actions
 
 -   `delete` - Delete matching files or directories
+-   `ignore` - Ignore matching files or directories (exclude from deletion)
 
 ### Targets
 
@@ -80,6 +81,30 @@ Targets support glob patterns:
 -   `*.log` - All files with .log extension
 -   `**/*.tmp` - All .tmp files recursively
 -   `node_modules` - Specific directory name
+
+### Ignore Patterns
+
+Use `ignore` to exclude files or directories from cleanup:
+
+```text
+# Ignore version control directories
+ignore .git
+ignore .svn
+
+# Ignore with glob patterns
+ignore node_modules/**
+ignore *.keep
+
+# Then define your cleanup rules
+delete target when exists Cargo.toml
+delete *.log
+```
+
+**Key features:**
+- Ignore rules prevent directory traversal (performance optimization)
+- Supports all glob patterns (e.g., `*.log`, `.git/**`, `important.*`)
+- Can be combined with API-level ignore options
+- Ignored directories and their contents are skipped entirely
 
 ### Conditions
 
@@ -104,6 +129,11 @@ Targets support glob patterns:
 ### Examples
 
 ```text
+# Ignore version control and dependencies
+ignore .git
+ignore node_modules
+ignore .svn
+
 # Delete target directory when Cargo.toml exists in current directory
 delete target when exists Cargo.toml
 
@@ -116,11 +146,17 @@ delete target when exists Cargo.toml and exists src
 # Delete unless keep file exists
 delete target when exists Cargo.toml and not exists keep.txt
 
-# Delete log files in git repositories
+# Delete log files in git repositories (but not .git itself)
+ignore .git
 delete **/*.log when parents exists .git
 
 # Delete without any condition
 delete *.log
+
+# Ignore important files before cleanup
+ignore *.keep
+ignore important/**
+delete *.tmp
 
 # Patterns with whitespace (use quotes)
 delete "My Documents" when exists "Desktop.ini"
@@ -220,7 +256,7 @@ const rules = parseRules("delete target when exists Cargo.toml");
 console.log(rules);
 ```
 
-### `findTargets(rulesOrDsl: string | Rule[], baseDirs: string | string[]): Promise<string[]>`
+### `findTargets(rulesOrDsl: string | Rule[], baseDirs: string | string[], options?: CleanupOptions): Promise<string[]>`
 
 Find all targets that match the rules (dry run - doesn't delete anything).
 
@@ -236,9 +272,18 @@ console.log("Would delete:", targets);
 // Multiple directories
 const targets = await findTargets("delete *.log", ["/path/to/project1", "/path/to/project2", "/path/to/project3"]);
 console.log("Would delete:", targets);
+
+// With ignore patterns (API-level)
+const targets = await findTargets("delete *", "/path/to/project", {
+  ignore: [".git", "node_modules", "*.keep"]
+});
+console.log("Would delete:", targets);
 ```
 
-### `executeCleanup(rulesOrDsl: string | Rule[], baseDirs: string | string[]): Promise<ExecutionResult>`
+**Options:**
+- `ignore?: string[]` - Array of patterns to ignore during cleanup. Supports glob patterns like `*.log`, `.git/**`, `important.*`
+
+### `executeCleanup(rulesOrDsl: string | Rule[], baseDirs: string | string[], options?: CleanupOptions): Promise<ExecutionResult>`
 
 Execute the rules and actually delete matching files/directories.
 
@@ -256,7 +301,16 @@ console.log("Errors:", result.errors);
 const result = await executeCleanup("delete *.log", ["/path/to/workspace1", "/path/to/workspace2"]);
 console.log("Deleted:", result.deleted);
 console.log("Errors:", result.errors);
+
+// With ignore patterns (API-level)
+const result = await executeCleanup("delete *", "/path/to/project", {
+  ignore: [".git", "node_modules/**", "*.keep", "important/**"]
+});
+console.log("Deleted:", result.deleted);
 ```
+
+**Options:**
+- `ignore?: string[]` - Array of patterns to ignore during cleanup. Supports glob patterns like `*.log`, `.git/**`, `important.*`
 
 Returns:
 
@@ -395,6 +449,10 @@ const result = await evaluator.execute(targets);
 
 ```javascript
 const dsl = `
+# Ignore version control
+ignore .git
+ignore .svn
+
 # Rust workspace cleanup
 delete target when exists Cargo.toml
 delete target when parent exists Cargo.toml
@@ -426,6 +484,42 @@ const dsl = "delete target when exists Cargo.toml and exists src";
 
 // Don't clean if keep marker exists
 const dsl2 = "delete target when exists Cargo.toml and not exists .keep";
+```
+
+### Combining DSL and API Ignore Patterns
+
+```javascript
+// DSL defines project-level ignore rules
+const dsl = `
+  ignore .git
+  ignore node_modules
+  delete *
+`;
+
+// API provides runtime-specific ignore rules
+const result = await executeCleanup(dsl, "/path/to/project", {
+  ignore: ["important/**", "*.keep"]  // Runtime ignores
+});
+
+// Both sets of patterns are merged and applied
+// Ignored: .git, node_modules, important/**, *.keep
+```
+
+### Ignore Patterns for Performance
+
+```javascript
+// Skip large directories to improve performance
+const dsl = `
+  ignore node_modules
+  ignore .git
+  ignore build
+  
+  delete **/*.tmp
+  delete **/*.log
+`;
+
+// Scanning is much faster because ignored directories are not traversed
+const targets = await findTargets(dsl, "/large/workspace");
 ```
 
 ## TypeScript Support

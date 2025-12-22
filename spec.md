@@ -39,13 +39,14 @@ Abstract form:
 
 ### 2.2 Action
 
-The current version defines only one core action:
+The current version defines two core actions:
 
 | Action   | Meaning                              |
 | -------- | ------------------------------------ |
 | `delete` | Delete matching files or directories |
+| `ignore` | Ignore matching files or directories |
 
-(Future extensions: `ignore` / `warn` / `dry-run`, etc.)
+The `ignore` action is used to exclude certain files or directories from being processed by delete rules. Ignored directories are not traversed, improving performance.
 
 ---
 
@@ -74,6 +75,44 @@ Rules:
 - The relative base is determined by the rule's context
 - Patterns with whitespace must be enclosed in quotes (single or double)
 - Within quoted strings, escape sequences are supported: `\n`, `\t`, `\\`, `\'`, `\"`
+
+---
+
+### 2.4 Ignore Rules
+
+Ignore rules are used to exclude certain files or directories from deletion:
+
+```
+ignore .git
+ignore node_modules
+ignore *.keep
+```
+
+**Features:**
+
+- Supports all glob patterns (e.g., `*.log`, `.git/**`, `important.*`)
+- Ignored directories are not recursively traversed (performance optimization)
+- Can be combined with API-level ignore options
+- Ignore rules do not support conditions (when), keeping the syntax simpler
+
+**Examples:**
+
+```text
+# Ignore version control directories
+ignore .git
+ignore .svn
+
+# Ignore dependency directories
+ignore node_modules/**
+
+# Ignore important files
+ignore *.keep
+ignore important/**
+
+# Then define deletion rules
+delete target when exists Cargo.toml
+delete *.log
+```
 
 ---
 
@@ -209,7 +248,7 @@ Explanation:
 
 ```
 Rule        ::= Action Target [ "when" Condition ]
-Action      ::= "delete"
+Action      ::= "delete" | "ignore"
 Target      ::= PathPattern
 Condition   ::= Predicate ( "and" Predicate )*
 Predicate   ::= [ Location ] "exists" PathPattern
@@ -230,6 +269,10 @@ PathPattern ::= glob-pattern | quoted-string
 ## 8. Example Rule File
 
 ```text
+# Ignore version control directories
+ignore .git
+ignore .svn
+
 # Rust
 delete target when exists Cargo.toml
 
