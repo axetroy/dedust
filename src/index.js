@@ -17,9 +17,9 @@ import { validateRules, ValidationError } from "./validator.js";
 
 /**
  * Attach event listeners to an evaluator
+ * @private
  * @param {Evaluator} evaluator - The evaluator instance
  * @param {EventListeners} listeners - Event listeners to attach
- * @private
  */
 function attachEventListeners(evaluator, listeners) {
 	if (listeners.onFileFound) {
@@ -40,6 +40,16 @@ function attachEventListeners(evaluator, listeners) {
 	if (listeners.onScanComplete) {
 		evaluator.on("scan:complete", listeners.onScanComplete);
 	}
+}
+
+/**
+ * Check if listeners object has any event handlers
+ * @private
+ * @param {EventListeners} listeners - Event listeners object
+ * @returns {boolean} True if any listeners are defined
+ */
+function hasListeners(listeners) {
+	return listeners && Object.keys(listeners).length > 0;
 }
 
 /**
@@ -127,7 +137,7 @@ export async function findTargets(rulesOrDsl, baseDirs, options = {}) {
 	const allTargets = new Set();
 	for (const dir of dirs) {
 		// If listeners are provided, use event-based evaluation
-		if (Object.keys(listeners).length > 0) {
+		if (hasListeners(listeners)) {
 			const evaluator = new Evaluator(rules, dir, ignorePatterns, skipPatterns);
 
 			// Attach event listeners using helper function
@@ -214,7 +224,7 @@ export async function executeCleanup(rulesOrDsl, baseDirs, options = {}) {
 
 	for (const dir of dirs) {
 		// If listeners are provided, use event-based execution
-		if (Object.keys(listeners).length > 0) {
+		if (hasListeners(listeners)) {
 			const evaluator = new Evaluator(rules, dir, ignorePatterns, skipPatterns);
 
 			// Attach event listeners using helper function
