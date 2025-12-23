@@ -10,7 +10,7 @@ import { validateRules, ValidationError } from "./validator.js";
 /**
  * @typedef {Object} CleanupOptions
  * @property {string[]} [ignore] - Patterns to ignore during cleanup (supports glob patterns)
- * @property {string[]} [skip] - Patterns to skip during traversal but allow matching (supports glob patterns)
+ * @property {string[]} [skip] - Patterns to skip during traversal but allow matching (supports glob patterns). Example: ['node_modules', '.git', 'build*']
  * @property {boolean} [skipValidation] - Skip safety validation of rules (use with caution)
  */
 
