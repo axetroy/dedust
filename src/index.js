@@ -1,6 +1,7 @@
 import { tokenize, Tokenizer } from "./tokenizer.js";
 import { parse, Parser } from "./parser.js";
 import { evaluate, executeRules, Evaluator } from "./evaluator.js";
+import { validateRules, ValidationError } from "./validator.js";
 
 /**
  * @typedef {import('./parser.js').Rule} Rule
@@ -9,6 +10,7 @@ import { evaluate, executeRules, Evaluator } from "./evaluator.js";
 /**
  * @typedef {Object} CleanupOptions
  * @property {string[]} [ignore] - Patterns to ignore during cleanup (supports glob patterns)
+ * @property {boolean} [skipValidation] - Skip safety validation of rules (use with caution)
  */
 
 /**
@@ -63,6 +65,15 @@ export async function findTargets(rulesOrDsl, baseDirs, options = {}) {
 	const dirs = Array.isArray(baseDirs) ? baseDirs : [baseDirs];
 	const ignorePatterns = options.ignore || [];
 
+	// Validate rules for safety unless explicitly skipped
+	if (!options.skipValidation) {
+		const validation = validateRules(rules);
+		if (!validation.valid) {
+			const errorMessages = validation.errors.map((e) => e.error).join("\n");
+			throw new ValidationError(`Rule validation failed:\n${errorMessages}`, validation.errors);
+		}
+	}
+
 	const allTargets = new Set();
 	for (const dir of dirs) {
 		const targets = await evaluate(rules, dir, true, ignorePatterns);
@@ -105,6 +116,15 @@ export async function executeCleanup(rulesOrDsl, baseDirs, options = {}) {
 	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
 	const dirs = Array.isArray(baseDirs) ? baseDirs : [baseDirs];
 	const ignorePatterns = options.ignore || [];
+
+	// Validate rules for safety unless explicitly skipped
+	if (!options.skipValidation) {
+		const validation = validateRules(rules);
+		if (!validation.valid) {
+			const errorMessages = validation.errors.map((e) => e.error).join("\n");
+			throw new ValidationError(`Rule validation failed:\n${errorMessages}`, validation.errors);
+		}
+	}
 
 	const allDeleted = [];
 	const allErrors = [];
@@ -169,6 +189,15 @@ export async function findTargetsWithEvents(rulesOrDsl, baseDirs, listeners = {}
 	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
 	const dirs = Array.isArray(baseDirs) ? baseDirs : [baseDirs];
 	const ignorePatterns = options.ignore || [];
+
+	// Validate rules for safety unless explicitly skipped
+	if (!options.skipValidation) {
+		const validation = validateRules(rules);
+		if (!validation.valid) {
+			const errorMessages = validation.errors.map((e) => e.error).join("\n");
+			throw new ValidationError(`Rule validation failed:\n${errorMessages}`, validation.errors);
+		}
+	}
 
 	const allTargets = new Set();
 
@@ -236,6 +265,15 @@ export async function executeCleanupWithEvents(rulesOrDsl, baseDirs, listeners =
 	const dirs = Array.isArray(baseDirs) ? baseDirs : [baseDirs];
 	const ignorePatterns = options.ignore || [];
 
+	// Validate rules for safety unless explicitly skipped
+	if (!options.skipValidation) {
+		const validation = validateRules(rules);
+		if (!validation.valid) {
+			const errorMessages = validation.errors.map((e) => e.error).join("\n");
+			throw new ValidationError(`Rule validation failed:\n${errorMessages}`, validation.errors);
+		}
+	}
+
 	const allDeleted = [];
 	const allErrors = [];
 
@@ -287,3 +325,6 @@ export default {
 
 // Export classes for advanced usage
 export { Tokenizer, Parser, Evaluator };
+
+// Export validation functions and error
+export { validateRules, validateRule, isDangerousPattern, ValidationError } from "./validator.js";

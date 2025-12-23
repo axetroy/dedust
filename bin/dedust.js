@@ -11,6 +11,7 @@ const flags = {
 	configFile: "dedust.rules",
 	help: false,
 	version: false,
+	skipValidation: false,
 };
 
 const directories = [];
@@ -25,6 +26,8 @@ for (let i = 0; i < args.length; i++) {
 		flags.version = true;
 	} else if (arg === "--dry-run" || arg === "-d") {
 		flags.dryRun = true;
+	} else if (arg === "--skip-validation") {
+		flags.skipValidation = true;
 	} else if (arg === "--config" || arg === "-c") {
 		i++;
 		if (i < args.length) {
@@ -54,6 +57,7 @@ Options:
   -v, --version           Show version number
   -d, --dry-run           Preview what would be deleted without actually deleting
   -c, --config <file>     Specify config file (default: dedust.rules)
+  --skip-validation       Skip safety validation (use with caution)
 
 Examples:
   # Clean current directory using dedust.rules
@@ -137,7 +141,7 @@ try {
 				onScanComplete: (data) => {
 					console.log(`\n✓ Scan complete. Found ${data.filesFound} items to delete.`);
 				},
-			});
+			}, { skipValidation: flags.skipValidation });
 
 			console.log("\n" + "=".repeat(60));
 			console.log("DRY RUN SUMMARY");
@@ -169,7 +173,7 @@ try {
 				onScanComplete: (data) => {
 					console.log(`\n✓ Scan complete. Found ${data.filesFound} items.`);
 				},
-			});
+			}, { skipValidation: flags.skipValidation });
 
 			console.log("\n" + "=".repeat(60));
 			console.log("CLEANUP SUMMARY");
@@ -187,9 +191,34 @@ try {
 
 		process.exit(0);
 	} catch (error) {
-		console.error("\nFatal error:", error.message);
-		if (error.stack) {
-			console.error(error.stack);
+		// Handle ValidationError specially for better user experience
+		if (error.name === "ValidationError") {
+			console.error("\n" + "=".repeat(60));
+			console.error("SECURITY VALIDATION FAILED");
+			console.error("=".repeat(60));
+			console.error("\nYour rules contain dangerous patterns that could delete all files.");
+			console.error("\nValidation errors:");
+			
+			if (error.validationErrors && error.validationErrors.length > 0) {
+				error.validationErrors.forEach((ve, index) => {
+					console.error(`\n${index + 1}. ${ve.error}`);
+					if (ve.rule) {
+						console.error(`   Rule: delete ${ve.rule.target}`);
+					}
+				});
+			}
+			
+			console.error("\nSuggestions:");
+			console.error("  • Add a condition to your rule (e.g., 'when exists Cargo.toml')");
+			console.error("  • Use a more specific pattern (e.g., '*.log' instead of '*')");
+			console.error("  • Use 'ignore' rules to protect important files");
+			console.error("  • If you're certain, use --skip-validation (USE WITH CAUTION!)");
+			console.error("");
+		} else {
+			console.error("\nFatal error:", error.message);
+			if (error.stack) {
+				console.error(error.stack);
+			}
 		}
 		process.exit(1);
 	}
