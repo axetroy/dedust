@@ -3,7 +3,7 @@
 import { readFileSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
-import { executeCleanupWithEvents, findTargetsWithEvents } from "../dist/esm/index.mjs";
+import { executeCleanup, findTargets } from "../dist/esm/index.mjs";
 
 const args = process.argv.slice(2);
 const flags = {
@@ -128,20 +128,25 @@ try {
 
 		if (flags.dryRun) {
 			// Dry run - just find targets
-			const targets = await findTargetsWithEvents(rulesText, directories, {
-				onScanStart: (data) => {
-					console.log(`→ Starting scan with ${data.rulesCount} rules...`);
+			const targets = await findTargets(
+				rulesText,
+				directories,
+				{
+					onScanStart: (data) => {
+						console.log(`→ Starting scan with ${data.rulesCount} rules...`);
+					},
+					onScanDirectory: (data) => {
+						process.stdout.write(`\r  Scanning: ${data.directory}...`);
+					},
+					onFileFound: (data) => {
+						console.log(`\n  Found: ${data.path}`);
+					},
+					onScanComplete: (data) => {
+						console.log(`\n✓ Scan complete. Found ${data.filesFound} items to delete.`);
+					},
 				},
-				onScanDirectory: (data) => {
-					process.stdout.write(`\r  Scanning: ${data.directory}...`);
-				},
-				onFileFound: (data) => {
-					console.log(`\n  Found: ${data.path}`);
-				},
-				onScanComplete: (data) => {
-					console.log(`\n✓ Scan complete. Found ${data.filesFound} items to delete.`);
-				},
-			}, { skipValidation: flags.skipValidation });
+				{ skipValidation: flags.skipValidation }
+			);
 
 			console.log("\n" + "=".repeat(60));
 			console.log("DRY RUN SUMMARY");
@@ -153,27 +158,32 @@ try {
 			}
 		} else {
 			// Actually delete
-			const result = await executeCleanupWithEvents(rulesText, directories, {
-				onScanStart: (data) => {
-					console.log(`→ Starting cleanup with ${data.rulesCount} rules...`);
+			const result = await executeCleanup(
+				rulesText,
+				directories,
+				{
+					onScanStart: (data) => {
+						console.log(`→ Starting cleanup with ${data.rulesCount} rules...`);
+					},
+					onScanDirectory: (data) => {
+						process.stdout.write(`\r  Scanning: ${data.directory}...`);
+					},
+					onFileFound: (data) => {
+						console.log(`\n  Found: ${data.path}`);
+					},
+					onFileDeleted: (data) => {
+						const type = data.isDirectory ? "directory" : "file";
+						console.log(`  ✓ Deleted ${type}: ${data.path}`);
+					},
+					onError: (data) => {
+						console.error(`  ✗ Error deleting ${data.path}: ${data.error.message}`);
+					},
+					onScanComplete: (data) => {
+						console.log(`\n✓ Scan complete. Found ${data.filesFound} items.`);
+					},
 				},
-				onScanDirectory: (data) => {
-					process.stdout.write(`\r  Scanning: ${data.directory}...`);
-				},
-				onFileFound: (data) => {
-					console.log(`\n  Found: ${data.path}`);
-				},
-				onFileDeleted: (data) => {
-					const type = data.isDirectory ? "directory" : "file";
-					console.log(`  ✓ Deleted ${type}: ${data.path}`);
-				},
-				onError: (data) => {
-					console.error(`  ✗ Error deleting ${data.path}: ${data.error.message}`);
-				},
-				onScanComplete: (data) => {
-					console.log(`\n✓ Scan complete. Found ${data.filesFound} items.`);
-				},
-			}, { skipValidation: flags.skipValidation });
+				{ skipValidation: flags.skipValidation }
+			);
 
 			console.log("\n" + "=".repeat(60));
 			console.log("CLEANUP SUMMARY");
@@ -198,7 +208,7 @@ try {
 			console.error("=".repeat(60));
 			console.error("\nYour rules contain dangerous patterns that could delete all files.");
 			console.error("\nValidation errors:");
-			
+
 			if (error.validationErrors && error.validationErrors.length > 0) {
 				error.validationErrors.forEach((ve, index) => {
 					console.error(`\n${index + 1}. ${ve.error}`);
@@ -207,7 +217,7 @@ try {
 					}
 				});
 			}
-			
+
 			console.error("\nSuggestions:");
 			console.error("  • Add a condition to your rule (e.g., 'when exists Cargo.toml')");
 			console.error("  • Use a more specific pattern (e.g., '*.log' instead of '*')");
