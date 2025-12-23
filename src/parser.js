@@ -199,7 +199,8 @@ export class Parser {
 		}
 		const target = this.advance().value;
 
-		// Parse optional condition (only for delete rules)
+		// Parse optional condition (only delete rules support conditions)
+		// Note: skip and ignore actions do not support conditions
 		let condition = null;
 		if (action === "delete" && this.match("when")) {
 			this.advance();
