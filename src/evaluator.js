@@ -82,6 +82,28 @@ export class Evaluator extends EventEmitter {
 			pattern,
 			matcher: new minimatch.Minimatch(pattern, { dot: true, matchBase: true }),
 		}));
+
+		// Cache for relative path computations to avoid repeated path.relative calls
+		this.relativePathCache = new Map();
+		
+		// Cache for shouldIgnore and shouldSkipTraversal results
+		this.ignoreCache = new Map();
+		this.skipCache = new Map();
+	}
+
+	/**
+	 * Get relative path with caching for performance
+	 * @private
+	 * @param {string} filePath - The path to get relative path for
+	 * @returns {string}
+	 */
+	getRelativePath(filePath) {
+		if (this.relativePathCache.has(filePath)) {
+			return this.relativePathCache.get(filePath);
+		}
+		const relativePath = path.relative(this.baseDir, filePath);
+		this.relativePathCache.set(filePath, relativePath);
+		return relativePath;
 	}
 
 	/**
@@ -90,8 +112,13 @@ export class Evaluator extends EventEmitter {
 	 * @returns {boolean}
 	 */
 	shouldIgnore(filePath) {
+		// Check cache first
+		if (this.ignoreCache.has(filePath)) {
+			return this.ignoreCache.get(filePath);
+		}
+
 		// Get relative path from baseDir
-		const relativePath = path.relative(this.baseDir, filePath);
+		const relativePath = this.getRelativePath(filePath);
 		
 		// Pre-split path parts once for reuse
 		const parts = relativePath.split(path.sep);
@@ -103,12 +130,14 @@ export class Evaluator extends EventEmitter {
 			if (pattern.endsWith(RECURSIVE_SUFFIX)) {
 				const dirPattern = pattern.slice(0, -RECURSIVE_SUFFIX.length);
 				if (minimatch(relativePath, dirPattern, { dot: true, matchBase: true })) {
+					this.ignoreCache.set(filePath, true);
 					return true;
 				}
 			}
 
 			// Match against relative path using cached matcher
 			if (matcher.match(relativePath)) {
+				this.ignoreCache.set(filePath, true);
 				return true;
 			}
 
@@ -117,11 +146,13 @@ export class Evaluator extends EventEmitter {
 			for (let i = 0; i < parts.length; i++) {
 				const partial = i === 0 ? parts[0] : parts.slice(0, i + 1).join(path.sep);
 				if (matcher.match(partial)) {
+					this.ignoreCache.set(filePath, true);
 					return true;
 				}
 			}
 		}
 
+		this.ignoreCache.set(filePath, false);
 		return false;
 	}
 
@@ -132,8 +163,13 @@ export class Evaluator extends EventEmitter {
 	 * @returns {boolean}
 	 */
 	shouldSkipTraversal(dirPath) {
+		// Check cache first
+		if (this.skipCache.has(dirPath)) {
+			return this.skipCache.get(dirPath);
+		}
+
 		// Get relative path from baseDir
-		const relativePath = path.relative(this.baseDir, dirPath);
+		const relativePath = this.getRelativePath(dirPath);
 		
 		// Pre-split path parts once for reuse
 		const parts = relativePath.split(path.sep);
@@ -145,12 +181,14 @@ export class Evaluator extends EventEmitter {
 			if (pattern.endsWith(RECURSIVE_SUFFIX)) {
 				const dirPattern = pattern.slice(0, -RECURSIVE_SUFFIX.length);
 				if (minimatch(relativePath, dirPattern, { dot: true, matchBase: true })) {
+					this.skipCache.set(dirPath, true);
 					return true;
 				}
 			}
 
 			// Match against relative path using cached matcher
 			if (matcher.match(relativePath)) {
+				this.skipCache.set(dirPath, true);
 				return true;
 			}
 
@@ -159,11 +197,13 @@ export class Evaluator extends EventEmitter {
 			for (let i = 0; i < parts.length; i++) {
 				const partial = i === 0 ? parts[0] : parts.slice(0, i + 1).join(path.sep);
 				if (matcher.match(partial)) {
+					this.skipCache.set(dirPath, true);
 					return true;
 				}
 			}
 		}
 
+		this.skipCache.set(dirPath, false);
 		return false;
 	}
 
@@ -255,7 +295,17 @@ export class Evaluator extends EventEmitter {
 				// Direct child directories
 				try {
 					const entries = fs.readdirSync(currentDir, { withFileTypes: true });
-					return entries.filter((entry) => entry.isDirectory()).map((entry) => path.join(currentDir, entry.name));
+					const childDirs = [];
+					for (const entry of entries) {
+						if (entry.isDirectory()) {
+							const fullPath = path.join(currentDir, entry.name);
+							// Skip ignored directories
+							if (!this.shouldIgnore(fullPath)) {
+								childDirs.push(fullPath);
+							}
+						}
+					}
+					return childDirs;
 				} catch {
 					return [];
 				}
@@ -270,8 +320,11 @@ export class Evaluator extends EventEmitter {
 						for (const entry of entries) {
 							if (entry.isDirectory()) {
 								const fullPath = path.join(dir, entry.name);
-								dirs.push(fullPath);
-								collectDirs(fullPath);
+								// Skip ignored and skipped directories for performance
+								if (!this.shouldIgnore(fullPath) && !this.shouldSkipTraversal(fullPath)) {
+									dirs.push(fullPath);
+									collectDirs(fullPath);
+								}
 							}
 						}
 					} catch {
