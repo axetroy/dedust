@@ -16,6 +16,33 @@ import { validateRules, ValidationError } from "./validator.js";
  */
 
 /**
+ * Attach event listeners to an evaluator
+ * @param {Evaluator} evaluator - The evaluator instance
+ * @param {EventListeners} listeners - Event listeners to attach
+ * @private
+ */
+function attachEventListeners(evaluator, listeners) {
+	if (listeners.onFileFound) {
+		evaluator.on("file:found", listeners.onFileFound);
+	}
+	if (listeners.onFileDeleted) {
+		evaluator.on("file:deleted", listeners.onFileDeleted);
+	}
+	if (listeners.onError) {
+		evaluator.on("error", listeners.onError);
+	}
+	if (listeners.onScanStart) {
+		evaluator.on("scan:start", listeners.onScanStart);
+	}
+	if (listeners.onScanDirectory) {
+		evaluator.on("scan:directory", listeners.onScanDirectory);
+	}
+	if (listeners.onScanComplete) {
+		evaluator.on("scan:complete", listeners.onScanComplete);
+	}
+}
+
+/**
  * Parse DSL text into rules
  * @param {string} input - The DSL text to parse
  * @returns {Rule[]} Array of parsed rules
@@ -103,22 +130,8 @@ export async function findTargets(rulesOrDsl, baseDirs, options = {}) {
 		if (Object.keys(listeners).length > 0) {
 			const evaluator = new Evaluator(rules, dir, ignorePatterns, skipPatterns);
 
-			// Attach event listeners
-			if (listeners.onFileFound) {
-				evaluator.on("file:found", listeners.onFileFound);
-			}
-			if (listeners.onError) {
-				evaluator.on("error", listeners.onError);
-			}
-			if (listeners.onScanStart) {
-				evaluator.on("scan:start", listeners.onScanStart);
-			}
-			if (listeners.onScanDirectory) {
-				evaluator.on("scan:directory", listeners.onScanDirectory);
-			}
-			if (listeners.onScanComplete) {
-				evaluator.on("scan:complete", listeners.onScanComplete);
-			}
+			// Attach event listeners using helper function
+			attachEventListeners(evaluator, listeners);
 
 			const targets = await evaluator.evaluate(true);
 			targets.forEach((target) => allTargets.add(target));
@@ -204,25 +217,8 @@ export async function executeCleanup(rulesOrDsl, baseDirs, options = {}) {
 		if (Object.keys(listeners).length > 0) {
 			const evaluator = new Evaluator(rules, dir, ignorePatterns, skipPatterns);
 
-			// Attach event listeners
-			if (listeners.onFileFound) {
-				evaluator.on("file:found", listeners.onFileFound);
-			}
-			if (listeners.onFileDeleted) {
-				evaluator.on("file:deleted", listeners.onFileDeleted);
-			}
-			if (listeners.onError) {
-				evaluator.on("error", listeners.onError);
-			}
-			if (listeners.onScanStart) {
-				evaluator.on("scan:start", listeners.onScanStart);
-			}
-			if (listeners.onScanDirectory) {
-				evaluator.on("scan:directory", listeners.onScanDirectory);
-			}
-			if (listeners.onScanComplete) {
-				evaluator.on("scan:complete", listeners.onScanComplete);
-			}
+			// Attach event listeners using helper function
+			attachEventListeners(evaluator, listeners);
 
 			const targets = await evaluator.evaluate(true);
 			const result = await evaluator.execute(targets);
