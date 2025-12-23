@@ -99,9 +99,10 @@ delete **/*.js  # Won't match node_modules/**/*.js
 ```
 
 **Key features:**
-- Skip rules prevent directory traversal (performance optimization)
-- Skipped directories can still be matched by explicit delete rules
-- Supports all glob patterns (e.g., `node_modules`, `.cache/**`, `build*`)
+
+-   Skip rules prevent directory traversal (performance optimization)
+-   Skipped directories can still be matched by explicit delete rules
+-   Supports all glob patterns (e.g., `node_modules`, `.cache/**`, `build*`)
 
 **Ignore Patterns** - Exclude from both traversal and matching:
 
@@ -120,15 +121,17 @@ delete *.log
 ```
 
 **Key features:**
-- Ignore rules prevent directory traversal (performance optimization)
-- Ignored paths cannot be matched by any delete rules
-- Supports all glob patterns (e.g., `*.log`, `.git/**`, `important.*`)
-- Can be combined with API-level ignore options
-- Ignored directories and their contents are skipped entirely
+
+-   Ignore rules prevent directory traversal (performance optimization)
+-   Ignored paths cannot be matched by any delete rules
+-   Supports all glob patterns (e.g., `*.log`, `.git/**`, `important.*`)
+-   Can be combined with API-level ignore options
+-   Ignored directories and their contents are skipped entirely
 
 **When to use which:**
-- Use `skip` when you want to avoid traversing large directories but still allow explicit deletion (e.g., `skip node_modules` + `delete node_modules when exists package.json`)
-- Use `ignore` when you never want to delete something under any circumstances (e.g., `ignore .git`)
+
+-   Use `skip` when you want to avoid traversing large directories but still allow explicit deletion (e.g., `skip node_modules` + `delete node_modules when exists package.json`)
+-   Use `ignore` when you never want to delete something under any circumstances (e.g., `ignore .git`)
 
 ### Conditions
 
@@ -292,8 +295,8 @@ const rules = parseRules("delete *");
 const validation = validateRules(rules);
 
 if (!validation.valid) {
-  console.error("Validation failed:");
-  validation.errors.forEach(e => console.error(e.error));
+	console.error("Validation failed:");
+	validation.errors.forEach((e) => console.error(e.error));
 }
 ```
 
@@ -308,7 +311,7 @@ const rule = { action: "delete", target: "*", condition: null };
 const result = validateRule(rule);
 
 if (!result.valid) {
-  console.error(result.error);
+	console.error(result.error);
 }
 ```
 
@@ -319,10 +322,10 @@ Check if a pattern is considered dangerous.
 ```javascript
 import { isDangerousPattern } from "dedust";
 
-console.log(isDangerousPattern("*"));        // true
-console.log(isDangerousPattern("**"));       // true
-console.log(isDangerousPattern("*.log"));    // false
-console.log(isDangerousPattern("target"));   // false
+console.log(isDangerousPattern("*")); // true
+console.log(isDangerousPattern("**")); // true
+console.log(isDangerousPattern("*.log")); // false
+console.log(isDangerousPattern("target")); // false
 ```
 
 ### `parseRules(input: string): Rule[]`
@@ -355,30 +358,31 @@ console.log("Would delete:", targets);
 
 // With ignore patterns (API-level)
 const targets = await findTargets("delete *", "/path/to/project", {
-  ignore: [".git", "node_modules", "*.keep"],
-  skipValidation: true  // Required for dangerous patterns
+	ignore: [".git", "node_modules", "*.keep"],
+	skipValidation: true, // Required for dangerous patterns
 });
 console.log("Would delete:", targets);
 
 // With skip patterns (API-level)
 const targets = await findTargets("delete **/*.js", "/path/to/project", {
-  skip: ["node_modules", ".git", "build*"]
+	skip: ["node_modules", ".git", "build*"],
 });
 console.log("Would delete:", targets);
 
 // With both ignore and skip patterns
 const targets = await findTargets("delete **/*", "/path/to/project", {
-  ignore: [".git", "*.keep"],
-  skip: ["node_modules", "dist"],
-  skipValidation: true  // Required for dangerous patterns
+	ignore: [".git", "*.keep"],
+	skip: ["node_modules", "dist"],
+	skipValidation: true, // Required for dangerous patterns
 });
 console.log("Would delete:", targets);
 ```
 
 **Options:**
-- `ignore?: string[]` - Array of patterns to ignore during cleanup. Supports glob patterns like `*.log`, `.git/**`, `important.*`. Ignored paths cannot be matched or deleted.
-- `skip?: string[]` - Array of patterns to skip during traversal but allow matching. Supports glob patterns like `node_modules`, `.git/**`, `build*`. Skipped directories won't be traversed (improves performance) but can still be matched by explicit delete rules.
-- `skipValidation?: boolean` - Skip safety validation. Use with caution! Allows dangerous patterns like `delete *` without conditions.
+
+-   `ignore?: string[]` - Array of patterns to ignore during cleanup. Supports glob patterns like `*.log`, `.git/**`, `important.*`. Ignored paths cannot be matched or deleted.
+-   `skip?: string[]` - Array of patterns to skip during traversal but allow matching. Supports glob patterns like `node_modules`, `.git/**`, `build*`. Skipped directories won't be traversed (improves performance) but can still be matched by explicit delete rules.
+-   `skipValidation?: boolean` - Skip safety validation. Use with caution! Allows dangerous patterns like `delete *` without conditions.
 
 ### `executeCleanup(rulesOrDsl: string | Rule[], baseDirs: string | string[], options?: CleanupOptions): Promise<ExecutionResult>`
 
@@ -401,30 +405,31 @@ console.log("Errors:", result.errors);
 
 // With ignore patterns (API-level)
 const result = await executeCleanup("delete *", "/path/to/project", {
-  ignore: [".git", "node_modules/**", "*.keep", "important/**"],
-  skipValidation: true  // Required for dangerous patterns
+	ignore: [".git", "node_modules/**", "*.keep", "important/**"],
+	skipValidation: true, // Required for dangerous patterns
 });
 console.log("Deleted:", result.deleted);
 
 // With skip patterns (API-level)
 const result = await executeCleanup("delete **/*.tmp", "/path/to/project", {
-  skip: ["node_modules", ".git", "cache*"]
+	skip: ["node_modules", ".git", "cache*"],
 });
 console.log("Deleted:", result.deleted);
 
 // With both ignore and skip patterns
 const result = await executeCleanup("delete **/*", "/path/to/project", {
-  ignore: [".git", "*.keep"],
-  skip: ["node_modules", "build"],
-  skipValidation: true  // Required for dangerous patterns
+	ignore: [".git", "*.keep"],
+	skip: ["node_modules", "build"],
+	skipValidation: true, // Required for dangerous patterns
 });
 console.log("Deleted:", result.deleted);
 ```
 
 **Options:**
-- `ignore?: string[]` - Array of patterns to ignore during cleanup. Supports glob patterns like `*.log`, `.git/**`, `important.*`. Ignored paths cannot be matched or deleted.
-- `skip?: string[]` - Array of patterns to skip during traversal but allow matching. Supports glob patterns like `node_modules`, `.git/**`, `build*`. Skipped directories won't be traversed (improves performance) but can still be matched by explicit delete rules.
-- `skipValidation?: boolean` - Skip safety validation. Use with caution! Allows dangerous patterns like `delete *` without conditions.
+
+-   `ignore?: string[]` - Array of patterns to ignore during cleanup. Supports glob patterns like `*.log`, `.git/**`, `important.*`. Ignored paths cannot be matched or deleted.
+-   `skip?: string[]` - Array of patterns to skip during traversal but allow matching. Supports glob patterns like `node_modules`, `.git/**`, `build*`. Skipped directories won't be traversed (improves performance) but can still be matched by explicit delete rules.
+-   `skipValidation?: boolean` - Skip safety validation. Use with caution! Allows dangerous patterns like `delete *` without conditions.
 
 Returns:
 
@@ -612,7 +617,7 @@ const dsl = `
 
 // API provides runtime-specific ignore rules
 const result = await executeCleanup(dsl, "/path/to/project", {
-  ignore: ["important/**", "*.keep"]  // Runtime ignores
+	ignore: ["important/**", "*.keep"], // Runtime ignores
 });
 
 // Both sets of patterns are merged and applied
@@ -632,7 +637,7 @@ const dsl = `
 
 // API provides runtime-specific skip rules
 const result = await executeCleanup(dsl, "/path/to/project", {
-  skip: ["build*", "cache"]  // Runtime skip patterns
+	skip: ["build*", "cache"], // Runtime skip patterns
 });
 
 // Both sets of patterns are merged and applied
@@ -660,8 +665,8 @@ const dsl2 = `
 // Use skip for large directories you want to occasionally clean
 // Use ignore for directories you never want to touch
 const result = await executeCleanup(dsl, "/path/to/project", {
-  skip: ["node_modules", "build"],  // Can be matched if explicitly targeted
-  ignore: [".git", "*.keep"]        // Never matched under any circumstances
+	skip: ["node_modules", "build"], // Can be matched if explicitly targeted
+	ignore: [".git", "*.keep"], // Never matched under any circumstances
 });
 ```
 
@@ -673,7 +678,7 @@ const dsl = `
   skip node_modules
   skip .git
   skip build
-  
+
   delete **/*.tmp
   delete **/*.log
 `;
@@ -683,7 +688,7 @@ const targets = await findTargets(dsl, "/large/workspace");
 
 // Equivalent using API skip patterns
 const targets2 = await findTargets("delete **/*.tmp delete **/*.log", "/large/workspace", {
-  skip: ["node_modules", ".git", "build"]
+	skip: ["node_modules", ".git", "build"],
 });
 ```
 
@@ -707,37 +712,41 @@ const result: ExecutionResult = await executeCleanup(rules, "/path");
 **dedust** includes automatic safety validations to prevent accidental mass deletion:
 
 1. **Dangerous Pattern Detection** - Automatically rejects patterns that could delete all files without conditions:
-   - `delete *` - Would delete all files in directory
-   - `delete **` - Would delete all files recursively
-   - `delete *.*` - Would delete all files with extensions
-   - `delete **/*` - Would delete all files in subdirectories
-   - `delete **/*.*` - Would delete all files with extensions recursively
+
+    - `delete *` - Would delete all files in directory
+    - `delete **` - Would delete all files recursively
+    - `delete *.*` - Would delete all files with extensions
+    - `delete **/*` - Would delete all files in subdirectories
+    - `delete **/*.*` - Would delete all files with extensions recursively
 
 2. **Safe Patterns** - These patterns are always allowed:
-   - Specific patterns like `delete *.log`, `delete target`, `delete node_modules`
-   - Dangerous patterns with conditions: `delete * when exists Cargo.toml`
-   - All `ignore` rules (not subject to validation)
+
+    - Specific patterns like `delete *.log`, `delete target`, `delete node_modules`
+    - Dangerous patterns with conditions: `delete * when exists Cargo.toml`
+    - All `ignore` rules (not subject to validation)
 
 3. **Validation Bypass** - For advanced users who understand the risks:
-   ```javascript
-   // API: Use skipValidation option
-   await executeCleanup(dsl, baseDir, { skipValidation: true });
-   
-   // CLI: Use --skip-validation flag
-   dedust --skip-validation
-   ```
+
+    ```javascript
+    // API: Use skipValidation option
+    await executeCleanup(dsl, baseDir, { skipValidation: true });
+
+    // CLI: Use --skip-validation flag
+    dedust --skip-validation
+    ```
 
 4. **Clear Error Messages** - When validation fails, you get helpful suggestions:
-   ```
-   SECURITY VALIDATION FAILED
-   
-   Dangerous pattern detected: 'delete *' without any condition.
-   
-   Suggestions:
-     • Add a condition (e.g., 'when exists Cargo.toml')
-     • Use a more specific pattern (e.g., '*.log' instead of '*')
-     • Use 'ignore' rules to protect important files
-   ```
+
+    ```
+    SECURITY VALIDATION FAILED
+
+    Dangerous pattern detected: 'delete *' without any condition.
+
+    Suggestions:
+      • Add a condition (e.g., 'when exists Cargo.toml')
+      • Use a more specific pattern (e.g., '*.log' instead of '*')
+      • Use 'ignore' rules to protect important files
+    ```
 
 ### Other Safety Features
 
@@ -749,45 +758,49 @@ const result: ExecutionResult = await executeCleanup(rules, "/path");
 ### Security Best Practices
 
 1. **Always use conditions for broad patterns:**
-   ```text
-   # Good: Only delete in Rust projects
-   delete target when exists Cargo.toml
-   
-   # Bad: Would delete all 'target' directories everywhere
-   delete target
-   ```
+
+    ```text
+    # Good: Only delete in Rust projects
+    delete target when exists Cargo.toml
+
+    # Bad: Would delete all 'target' directories everywhere
+    delete target
+    ```
 
 2. **Use ignore rules to protect important files:**
-   ```text
-   # Protect version control and configuration
-   ignore .git
-   ignore .env
-   ignore *.keep
-   
-   # Then use broader cleanup rules
-   delete *.tmp
-   ```
+
+    ```text
+    # Protect version control and configuration
+    ignore .git
+    ignore .env
+    ignore *.keep
+
+    # Then use broader cleanup rules
+    delete *.tmp
+    ```
 
 3. **Test with --dry-run first:**
-   ```bash
-   # Always preview before deleting
-   dedust --dry-run
-   
-   # Then execute if results look correct
-   dedust
-   ```
+
+    ```bash
+    # Always preview before deleting
+    dedust --dry-run
+
+    # Then execute if results look correct
+    dedust
+    ```
 
 4. **Use specific patterns when possible:**
-   ```text
-   # Good: Specific to what you want to clean
-   delete *.log
-   delete **/*.tmp
-   delete node_modules when exists package.json
-   
-   # Avoid: Too broad without conditions
-   delete *
-   delete **/*
-   ```
+
+    ```text
+    # Good: Specific to what you want to clean
+    delete *.log
+    delete **/*.tmp
+    delete node_modules when exists package.json
+
+    # Avoid: Too broad without conditions
+    delete *
+    delete **/*
+    ```
 
 ## Dedust Rule Language (DRL) Design Principles
 
