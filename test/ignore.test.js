@@ -42,7 +42,7 @@ test("Ignore - simple ignore pattern", async () => {
 	});
 
 	const dsl = "delete *";
-	const targets = await findTargets(dsl, testDir, { ignore: [".git"] });
+	const targets = await findTargets(dsl, testDir, { ignore: [".git"], skipValidation: true });
 
 	// Should find .log files but not .git
 	assert.ok(targets.some((t) => t.endsWith("test.log")));
@@ -105,7 +105,7 @@ test("Ignore - multiple ignore patterns", async () => {
 	});
 
 	const dsl = "delete *";
-	const targets = await findTargets(dsl, testDir, { ignore: [".git", ".svn"] });
+	const targets = await findTargets(dsl, testDir, { ignore: [".git", ".svn"], skipValidation: true });
 
 	// Should find data and test.log but not .git or .svn
 	assert.ok(targets.some((t) => t.endsWith("test.log")));
@@ -126,7 +126,7 @@ test("Ignore - executeCleanup respects ignore patterns", async () => {
 	});
 
 	const dsl = "delete *";
-	const result = await executeCleanup(dsl, testDir, { ignore: [".git"] });
+	const result = await executeCleanup(dsl, testDir, { ignore: [".git"], skipValidation: true });
 
 	assert.strictEqual(result.deleted.length, 3);
 	assert.strictEqual(result.errors.length, 0);
@@ -157,7 +157,7 @@ test("Ignore - ignore with relative path patterns", async () => {
 
 	const dsl = "delete **/*";
 	const projectDir = path.join(testDir, "project");
-	const targets = await findTargets(dsl, projectDir, { ignore: [".git/**", "src/**"] });
+	const targets = await findTargets(dsl, projectDir, { ignore: [".git/**", "src/**"], skipValidation: true });
 
 	// Should find dist files but not .git or src
 	assert.ok(targets.some((t) => t.includes("dist")));
@@ -241,7 +241,7 @@ test("DSL Ignore - simple ignore in DSL", async () => {
 		ignore .git
 		delete *
 	`;
-	const targets = await findTargets(dsl, testDir);
+	const targets = await findTargets(dsl, testDir, { skipValidation: true });
 
 	// Should find .log files but not .git
 	assert.ok(targets.some((t) => t.endsWith("test.log")));
@@ -268,7 +268,7 @@ test("DSL Ignore - multiple ignore rules in DSL", async () => {
 		ignore .svn
 		delete *
 	`;
-	const targets = await findTargets(dsl, testDir);
+	const targets = await findTargets(dsl, testDir, { skipValidation: true });
 
 	// Should find data and test.log but not .git or .svn
 	assert.ok(targets.some((t) => t.endsWith("test.log")));
@@ -339,7 +339,7 @@ test("DSL Ignore - combined DSL and API ignore", async () => {
 		ignore .git
 		delete **/*
 	`;
-	const targets = await findTargets(dsl, testDir, { ignore: ["node_modules/**"] });
+	const targets = await findTargets(dsl, testDir, { ignore: ["node_modules/**"], skipValidation: true });
 
 	// Should only find src directory and files
 	assert.ok(targets.some((t) => t.includes("src")));
@@ -362,7 +362,7 @@ test("DSL Ignore - executeCleanup with DSL ignore", async () => {
 		ignore .git
 		delete *
 	`;
-	const result = await executeCleanup(dsl, testDir);
+	const result = await executeCleanup(dsl, testDir, { skipValidation: true });
 
 	assert.strictEqual(result.deleted.length, 3);
 	assert.strictEqual(result.errors.length, 0);
