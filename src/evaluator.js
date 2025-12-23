@@ -9,32 +9,10 @@ import { minimatch } from "minimatch";
  * @typedef {import('./parser.js').Condition} Condition
  * @typedef {import('./parser.js').Predicate} Predicate
  * @typedef {import('./parser.js').LocationType} LocationType
- */
-
-/**
- * @typedef {Object} EvaluationContext
- * @property {string} baseDir - The base directory for evaluation
- * @property {string} currentDir - The current directory being evaluated
- */
-
-/**
- * @typedef {Object} FileFoundEvent
- * @property {string} path - The path of the file found
- * @property {Rule} rule - The rule that matched this file
- * @property {string} directory - The directory where the file was found
- */
-
-/**
- * @typedef {Object} FileDeletedEvent
- * @property {string} path - The path of the deleted file
- * @property {boolean} isDirectory - Whether the deleted item was a directory
- */
-
-/**
- * @typedef {Object} ErrorEvent
- * @property {string} path - The path where the error occurred
- * @property {Error} error - The error that occurred
- * @property {string} phase - The phase where error occurred ('evaluation' or 'deletion')
+ * @typedef {import('./index.js').EvaluationContext} EvaluationContext
+ * @typedef {import('./index.js').FileFoundEvent} FileFoundEvent
+ * @typedef {import('./index.js').FileDeletedEvent} FileDeletedEvent
+ * @typedef {import('./index.js').ErrorEvent} ErrorEvent
  */
 
 /**
@@ -102,7 +80,7 @@ export class Evaluator extends EventEmitter {
 
 		// Cache for relative path computations to avoid repeated path.relative calls
 		this.relativePathCache = new Map();
-		
+
 		// Cache for shouldIgnore and shouldSkipTraversal results
 		this.ignoreCache = new Map();
 		this.skipCache = new Map();
@@ -158,12 +136,12 @@ export class Evaluator extends EventEmitter {
 
 		// Get relative path from baseDir
 		const relativePath = this.getRelativePath(filePath);
-		
+
 		// Pre-split path parts once for reuse
 		const parts = relativePath.split(path.sep);
 
 		// Check against each ignore pattern using cached matchers
-		for (const { matcher, dirMatcher } of this.ignoreMatchers) {
+		for (const { pattern: _, matcher, dirMatcher } of this.ignoreMatchers) {
 			// If pattern ends with /**, also match the directory itself using cached dirMatcher
 			if (dirMatcher && dirMatcher.match(relativePath)) {
 				this.ignoreCache.set(filePath, true);
@@ -201,12 +179,12 @@ export class Evaluator extends EventEmitter {
 
 		// Get relative path from baseDir
 		const relativePath = this.getRelativePath(dirPath);
-		
+
 		// Pre-split path parts once for reuse
 		const parts = relativePath.split(path.sep);
 
 		// Check against each skip pattern using cached matchers
-		for (const { matcher, dirMatcher } of this.skipMatchers) {
+		for (const { pattern: _, matcher, dirMatcher } of this.skipMatchers) {
 			// If pattern ends with /**, also match the directory itself using cached dirMatcher
 			if (dirMatcher && dirMatcher.match(relativePath)) {
 				this.skipCache.set(dirPath, true);
@@ -261,7 +239,7 @@ export class Evaluator extends EventEmitter {
 	 */
 	async exists(dir, pattern) {
 		// For simple patterns without glob characters, use direct fs check (much faster)
-		if (!/[*?[\]{}]/.test(pattern)) {
+		if (isSimplePattern(pattern)) {
 			try {
 				const fullPattern = path.join(dir, pattern);
 				return fs.existsSync(fullPattern);
@@ -500,7 +478,7 @@ export class Evaluator extends EventEmitter {
 			const pattern = rule.target;
 
 			// For simple patterns without glob, check directly
-			if (!/[*?[\]{}]/.test(pattern)) {
+			if (isSimplePattern(pattern)) {
 				const fullPath = path.join(dir, pattern);
 				if (fs.existsSync(fullPath) && !this.shouldIgnore(fullPath)) {
 					// Skip paths inside skipped directories (but skipped directories themselves are allowed)
@@ -656,4 +634,16 @@ export async function executeRules(rules, baseDir, ignorePatterns = [], skipPatt
 	const evaluator = new Evaluator(rules, baseDir, ignorePatterns, skipPatterns);
 	const targets = await evaluator.evaluate(true);
 	return evaluator.execute(targets);
+}
+
+let SIMPLE_PATTERN_REGEX = /[*?[\]{}]/;
+
+/**
+ * Check if a pattern is simple (no glob characters)
+ * @param {string} pattern - The pattern to check
+ * @returns {boolean}
+ */
+function isSimplePattern(pattern) {
+	// A simple pattern contains no glob characters
+	return SIMPLE_PATTERN_REGEX.test(pattern) === false;
 }
