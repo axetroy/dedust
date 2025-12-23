@@ -1,6 +1,7 @@
 import { glob } from "glob";
 import path from "node:path";
 import fs from "node:fs";
+import fsp from "node:fs/promises";
 import { EventEmitter } from "node:events";
 import { minimatch } from "minimatch";
 
@@ -242,7 +243,8 @@ export class Evaluator extends EventEmitter {
 		if (isSimplePattern(pattern)) {
 			try {
 				const fullPattern = path.join(dir, pattern);
-				return fs.existsSync(fullPattern);
+				await fsp.access(fullPattern);
+				return true;
 			} catch {
 				return false;
 			}
@@ -265,9 +267,9 @@ export class Evaluator extends EventEmitter {
 	 * Get the directory based on location modifier
 	 * @param {string} currentDir - Current directory
 	 * @param {LocationType} location - Location modifier
-	 * @returns {string[]} - Array of directories to check
+	 * @returns {Promise<string[]>} - Array of directories to check
 	 */
-	getLocationDirs(currentDir, location) {
+	async getLocationDirs(currentDir, location) {
 		switch (location) {
 			case "here":
 				return [currentDir];
@@ -295,7 +297,7 @@ export class Evaluator extends EventEmitter {
 			case "child": {
 				// Direct child directories
 				try {
-					const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+					const entries = await fsp.readdir(currentDir, { withFileTypes: true });
 					const childDirs = [];
 					for (const entry of entries) {
 						if (entry.isDirectory()) {
@@ -315,16 +317,16 @@ export class Evaluator extends EventEmitter {
 			case "children": {
 				// All descendant directories (recursive)
 				const dirs = [];
-				const collectDirs = (dir) => {
+				const collectDirs = async (dir) => {
 					try {
-						const entries = fs.readdirSync(dir, { withFileTypes: true });
+						const entries = await fsp.readdir(dir, { withFileTypes: true });
 						for (const entry of entries) {
 							if (entry.isDirectory()) {
 								const fullPath = path.join(dir, entry.name);
 								// Skip ignored and skipped directories for performance
 								if (!this.shouldIgnore(fullPath) && !this.shouldSkipTraversal(fullPath)) {
 									dirs.push(fullPath);
-									collectDirs(fullPath);
+									await collectDirs(fullPath);
 								}
 							}
 						}
@@ -332,7 +334,7 @@ export class Evaluator extends EventEmitter {
 						// Skip directories we can't read
 					}
 				};
-				collectDirs(currentDir);
+				await collectDirs(currentDir);
 				return dirs;
 			}
 
@@ -343,7 +345,7 @@ export class Evaluator extends EventEmitter {
 					return [];
 				}
 				try {
-					const entries = fs.readdirSync(parentDir, { withFileTypes: true });
+					const entries = await fsp.readdir(parentDir, { withFileTypes: true });
 					return entries
 						.filter((entry) => entry.isDirectory())
 						.map((entry) => path.join(parentDir, entry.name))
@@ -373,7 +375,7 @@ export class Evaluator extends EventEmitter {
 		}
 
 		if (predicate.type === "exists") {
-			const dirs = this.getLocationDirs(currentDir, predicate.location);
+			const dirs = await this.getLocationDirs(currentDir, predicate.location);
 
 			// For exists, check if pattern exists in any of the location directories
 			for (const dir of dirs) {
@@ -430,13 +432,13 @@ export class Evaluator extends EventEmitter {
 	/**
 	 * Find all directories recursively
 	 * @param {string} dir
-	 * @returns {string[]}
+	 * @returns {Promise<string[]>}
 	 */
-	getAllDirectories(dir) {
+	async getAllDirectories(dir) {
 		const dirs = [dir];
-		const collectDirs = (d) => {
+		const collectDirs = async (d) => {
 			try {
-				const entries = fs.readdirSync(d, { withFileTypes: true });
+				const entries = await fsp.readdir(d, { withFileTypes: true });
 				for (const entry of entries) {
 					if (entry.isDirectory()) {
 						const fullPath = path.join(d, entry.name);
@@ -445,14 +447,14 @@ export class Evaluator extends EventEmitter {
 							continue;
 						}
 						dirs.push(fullPath);
-						collectDirs(fullPath);
+						await collectDirs(fullPath);
 					}
 				}
 			} catch {
 				// Skip directories we can't read
 			}
 		};
-		collectDirs(dir);
+		await collectDirs(dir);
 		return dirs;
 	}
 
@@ -480,12 +482,14 @@ export class Evaluator extends EventEmitter {
 			// For simple patterns without glob, check directly
 			if (isSimplePattern(pattern)) {
 				const fullPath = path.join(dir, pattern);
-				if (fs.existsSync(fullPath) && !this.shouldIgnore(fullPath)) {
-					// Skip paths inside skipped directories (but skipped directories themselves are allowed)
-					if (!this.isInsideSkippedDirectory(fullPath)) {
+				try {
+					await fsp.access(fullPath);
+					if (!this.shouldIgnore(fullPath) && !this.isInsideSkippedDirectory(fullPath)) {
 						targets.push(fullPath);
 						this.emit("file:found", { path: fullPath, rule, directory: dir });
 					}
+				} catch {
+					// File doesn't exist, skip
 				}
 				return targets;
 			}
@@ -532,7 +536,7 @@ export class Evaluator extends EventEmitter {
 		this.emit("scan:start", { baseDir: this.baseDir, rulesCount: this.rules.length });
 
 		// Get all directories to evaluate
-		const directories = this.getAllDirectories(this.baseDir);
+		const directories = await this.getAllDirectories(this.baseDir);
 
 		// For each directory, check all rules
 		for (const dir of directories) {
@@ -577,18 +581,20 @@ export class Evaluator extends EventEmitter {
 		for (const target of sortedTargets) {
 			try {
 				// Check if file/directory still exists (may have been deleted with parent)
-				if (!fs.existsSync(target)) {
-					continue;
+				try {
+					await fsp.access(target);
+				} catch {
+					continue; // File doesn't exist, skip
 				}
 
 				// Check if it's a directory or file
-				const stats = fs.statSync(target);
+				const stats = await fsp.stat(target);
 				const isDirectory = stats.isDirectory();
 
 				if (isDirectory) {
-					fs.rmSync(target, { recursive: true, force: true });
+					await fsp.rm(target, { recursive: true, force: true });
 				} else {
-					fs.unlinkSync(target);
+					await fsp.unlink(target);
 				}
 
 				deleted.push(target);
