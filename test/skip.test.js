@@ -276,7 +276,9 @@ test("Skip - combined with ignore", async () => {
 		delete cache
 		delete **/*
 	`;
-	const targets = await findTargets(dsl, testDir);
+	const targets = await findTargets(dsl, testDir, {
+		skipValidation: true,
+	});
 
 	// node_modules should be matched (skip allows it)
 	assert.ok(targets.some((t) => t === path.join(testDir, "node_modules")), "Skip should allow node_modules to match");
