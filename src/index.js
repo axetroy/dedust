@@ -5,19 +5,7 @@ import { validateRules, ValidationError } from "./validator.js";
 
 /**
  * @typedef {import('./parser.js').Rule} Rule
- */
-
-/**
- * @typedef {Object} CleanupOptions
- * @property {string[]} [ignore] - Patterns to ignore during cleanup (supports glob patterns)
- * @property {string[]} [skip] - Patterns to skip during traversal but allow matching (supports glob patterns). Example: ['node_modules', '.git', 'build*']
- * @property {boolean} [skipValidation] - Skip safety validation of rules (use with caution)
- * @property {EventListener} [onFileFound] - Called when a file is found
- * @property {EventListener} [onFileDeleted] - Called when a file is deleted
- * @property {EventListener} [onError] - Called when an error occurs
- * @property {EventListener} [onScanStart] - Called when scanning starts
- * @property {EventListener} [onScanDirectory] - Called when scanning a directory
- * @property {EventListener} [onScanComplete] - Called when scanning completes
+ * @typedef {import('./index.js').CleanupOptions} CleanupOptions
  */
 
 /**
