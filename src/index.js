@@ -259,71 +259,11 @@ export async function executeCleanup(rulesOrDsl, baseDirs, options = {}) {
  * @returns {void}
  */
 
-/**
- * @typedef {Object} EventListeners
- * @property {EventListener} [onFileFound] - Called when a file is found
- * @property {EventListener} [onFileDeleted] - Called when a file is deleted
- * @property {EventListener} [onError] - Called when an error occurs
- * @property {EventListener} [onScanStart] - Called when scanning starts
- * @property {EventListener} [onScanDirectory] - Called when scanning a directory
- * @property {EventListener} [onScanComplete] - Called when scanning completes
- */
-
-/**
- * Evaluate rules with event callbacks
- * @deprecated Use `findTargets` with event listeners directly in options instead
- * @param {string | Rule[]} rulesOrDsl - DSL text or parsed rules
- * @param {string | string[]} baseDirs - Base directory or directories to evaluate from
- * @param {EventListeners} listeners - Event listeners
- * @param {CleanupOptions} [options] - Options including ignore and skip patterns
- * @returns {Promise<string[]>} Array of file paths that would be deleted
- * @example
- * ```js
- * import { findTargets } from 'dedust';
- *
- * // Preferred: Use findTargets with event listeners directly in options
- * const targets = await findTargets(dsl, '/path/to/project', {
- *   onFileFound: (data) => console.log('Found:', data.path),
- *   onScanComplete: (data) => console.log('Found', data.filesFound, 'files')
- * });
- * ```
- */
-export async function findTargetsWithEvents(rulesOrDsl, baseDirs, listeners = {}, options = {}) {
-	// Merge listeners into options and call the main function
-	return findTargets(rulesOrDsl, baseDirs, { ...options, ...listeners });
-}
-
-/**
- * Execute cleanup with event callbacks
- * @deprecated Use `executeCleanup` with event listeners directly in options instead
- * @param {string | Rule[]} rulesOrDsl - DSL text or parsed rules
- * @param {string | string[]} baseDirs - Base directory or directories to execute from
- * @param {EventListeners} listeners - Event listeners
- * @param {CleanupOptions} [options] - Options including ignore and skip patterns
- * @returns {Promise<{deleted: string[], errors: Array<{path: string, error: Error}>}>}
- * @example
- * ```js
- * import { executeCleanup } from 'dedust';
- *
- * // Preferred: Use executeCleanup with event listeners directly in options
- * const result = await executeCleanup(dsl, '/path/to/project', {
- *   onFileDeleted: (data) => console.log('Deleted:', data.path),
- *   onError: (data) => console.error('Error:', data.error)
- * });
- * ```
- */
-export async function executeCleanupWithEvents(rulesOrDsl, baseDirs, listeners = {}, options = {}) {
-	// Merge listeners into options and call the main function
-	return executeCleanup(rulesOrDsl, baseDirs, { ...options, ...listeners });
-}
-
 // Export everything as default
 export default {
 	parseRules,
 	findTargets,
 	executeCleanup,
-	findTargetsWithEvents,
-	executeCleanupWithEvents,
 	tokenize,
 	parse,
 	evaluate,

@@ -3,7 +3,7 @@ import assert from "node:assert";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-import { findTargets, executeCleanup, findTargetsWithEvents, executeCleanupWithEvents } from "../src/index.js";
+import { findTargets, executeCleanup } from "../src/index.js";
 import { createStructure } from "./helper.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -134,7 +134,7 @@ test("Multiple directories - with conditions", async () => {
 	assert.ok(!targets.some((t) => t.includes("test-multi-dir2")));
 });
 
-test("Multiple directories - findTargetsWithEvents", async () => {
+test("Multiple directories - findTargets with events", async () => {
 	createStructure(
 		{
 			"test.log": "log1",
@@ -154,7 +154,7 @@ test("Multiple directories - findTargetsWithEvents", async () => {
 	let scanCompleteCount = 0;
 
 	const dsl = "delete *.log";
-	const targets = await findTargetsWithEvents(dsl, [testDir1, testDir2], {
+	const targets = await findTargets(dsl, [testDir1, testDir2], {
 		onFileFound: (data) => {
 			filesFound.push(data.path);
 		},
@@ -172,7 +172,7 @@ test("Multiple directories - findTargetsWithEvents", async () => {
 	assert.strictEqual(scanCompleteCount, 2); // Once per directory
 });
 
-test("Multiple directories - executeCleanupWithEvents", async () => {
+test("Multiple directories - executeCleanup with events", async () => {
 	createStructure(
 		{
 			"test.log": "log1",
@@ -190,7 +190,7 @@ test("Multiple directories - executeCleanupWithEvents", async () => {
 	const filesDeleted = [];
 
 	const dsl = "delete *.log";
-	const result = await executeCleanupWithEvents(dsl, [testDir1, testDir2], {
+	const result = await executeCleanup(dsl, [testDir1, testDir2], {
 		onFileDeleted: (data) => {
 			filesDeleted.push(data.path);
 		},

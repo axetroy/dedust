@@ -626,8 +626,6 @@ const result = await executeCleanup("delete *.log", "/path/to/project", {
 | `onScanDirectory` | Called when scanning each directory | `ScanDirectoryEvent` |
 | `onScanComplete`  | Called when scanning completes      | `ScanCompleteEvent`  |
 
-**Note:** The `findTargetsWithEvents` and `executeCleanupWithEvents` functions are still available for backward compatibility but are deprecated. Use the main functions with event listeners directly in options instead.
-
 ### Multiple Directories
 
 All API functions support scanning multiple directories in a single call. Simply pass an array of directory paths instead of a single string:
