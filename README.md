@@ -359,10 +359,25 @@ const targets = await findTargets("delete *", "/path/to/project", {
   skipValidation: true  // Required for dangerous patterns
 });
 console.log("Would delete:", targets);
+
+// With skip patterns (API-level)
+const targets = await findTargets("delete **/*.js", "/path/to/project", {
+  skip: ["node_modules", ".git", "build*"]
+});
+console.log("Would delete:", targets);
+
+// With both ignore and skip patterns
+const targets = await findTargets("delete **/*", "/path/to/project", {
+  ignore: [".git", "*.keep"],
+  skip: ["node_modules", "dist"],
+  skipValidation: true  // Required for dangerous patterns
+});
+console.log("Would delete:", targets);
 ```
 
 **Options:**
-- `ignore?: string[]` - Array of patterns to ignore during cleanup. Supports glob patterns like `*.log`, `.git/**`, `important.*`
+- `ignore?: string[]` - Array of patterns to ignore during cleanup. Supports glob patterns like `*.log`, `.git/**`, `important.*`. Ignored paths cannot be matched or deleted.
+- `skip?: string[]` - Array of patterns to skip during traversal but allow matching. Supports glob patterns like `node_modules`, `.git/**`, `build*`. Skipped directories won't be traversed (improves performance) but can still be matched by explicit delete rules.
 - `skipValidation?: boolean` - Skip safety validation. Use with caution! Allows dangerous patterns like `delete *` without conditions.
 
 ### `executeCleanup(rulesOrDsl: string | Rule[], baseDirs: string | string[], options?: CleanupOptions): Promise<ExecutionResult>`
@@ -390,10 +405,25 @@ const result = await executeCleanup("delete *", "/path/to/project", {
   skipValidation: true  // Required for dangerous patterns
 });
 console.log("Deleted:", result.deleted);
+
+// With skip patterns (API-level)
+const result = await executeCleanup("delete **/*.tmp", "/path/to/project", {
+  skip: ["node_modules", ".git", "cache*"]
+});
+console.log("Deleted:", result.deleted);
+
+// With both ignore and skip patterns
+const result = await executeCleanup("delete **/*", "/path/to/project", {
+  ignore: [".git", "*.keep"],
+  skip: ["node_modules", "build"],
+  skipValidation: true  // Required for dangerous patterns
+});
+console.log("Deleted:", result.deleted);
 ```
 
 **Options:**
-- `ignore?: string[]` - Array of patterns to ignore during cleanup. Supports glob patterns like `*.log`, `.git/**`, `important.*`
+- `ignore?: string[]` - Array of patterns to ignore during cleanup. Supports glob patterns like `*.log`, `.git/**`, `important.*`. Ignored paths cannot be matched or deleted.
+- `skip?: string[]` - Array of patterns to skip during traversal but allow matching. Supports glob patterns like `node_modules`, `.git/**`, `build*`. Skipped directories won't be traversed (improves performance) but can still be matched by explicit delete rules.
 - `skipValidation?: boolean` - Skip safety validation. Use with caution! Allows dangerous patterns like `delete *` without conditions.
 
 Returns:
@@ -589,21 +619,72 @@ const result = await executeCleanup(dsl, "/path/to/project", {
 // Ignored: .git, node_modules, important/**, *.keep
 ```
 
-### Ignore Patterns for Performance
+### Combining DSL and API Skip Patterns
+
+```javascript
+// DSL defines project-level skip rules for traversal optimization
+const dsl = `
+  skip node_modules
+  skip .git
+  delete node_modules when exists package.json
+  delete **/*.log
+`;
+
+// API provides runtime-specific skip rules
+const result = await executeCleanup(dsl, "/path/to/project", {
+  skip: ["build*", "cache"]  // Runtime skip patterns
+});
+
+// Both sets of patterns are merged and applied
+// Skipped for traversal: node_modules, .git, build*, cache
+// But node_modules can still be matched by the explicit delete rule
+```
+
+### Skip vs Ignore Patterns
+
+```javascript
+// Skip prevents traversal but allows matching (performance optimization)
+const dsl = `
+  skip node_modules
+  delete node_modules when exists package.json
+  delete **/*.js  // Won't find files inside node_modules
+`;
+
+// Ignore prevents both traversal and matching (complete exclusion)
+const dsl2 = `
+  ignore .git
+  delete .git  // This won't match anything
+  delete **/*  // Won't find anything inside .git
+`;
+
+// Use skip for large directories you want to occasionally clean
+// Use ignore for directories you never want to touch
+const result = await executeCleanup(dsl, "/path/to/project", {
+  skip: ["node_modules", "build"],  // Can be matched if explicitly targeted
+  ignore: [".git", "*.keep"]        // Never matched under any circumstances
+});
+```
+
+### Performance Optimization with Skip Patterns
 
 ```javascript
 // Skip large directories to improve performance
 const dsl = `
-  ignore node_modules
-  ignore .git
-  ignore build
+  skip node_modules
+  skip .git
+  skip build
   
   delete **/*.tmp
   delete **/*.log
 `;
 
-// Scanning is much faster because ignored directories are not traversed
+// Scanning is much faster because skipped directories are not traversed
 const targets = await findTargets(dsl, "/large/workspace");
+
+// Equivalent using API skip patterns
+const targets2 = await findTargets("delete **/*.tmp delete **/*.log", "/large/workspace", {
+  skip: ["node_modules", ".git", "build"]
+});
 ```
 
 ## TypeScript Support
