@@ -574,18 +574,15 @@ Returns:
 }
 ```
 
-### Event-Based API
+### Event Listeners (Optional)
 
-For real-time feedback during cleanup operations, use the event-based functions:
-
-#### `findTargetsWithEvents(rulesOrDsl, baseDir, listeners): Promise<string[]>`
-
-Find targets with event callbacks for real-time feedback.
+All main API functions (`findTargets` and `executeCleanup`) support optional event listeners for real-time feedback during cleanup operations. Event listeners are provided directly as options:
 
 ```javascript
-import { findTargetsWithEvents } from "dedust";
+import { findTargets, executeCleanup } from "dedust";
 
-const targets = await findTargetsWithEvents("delete *.log", "/path/to/project", {
+// Find targets with event listeners
+const targets = await findTargets("delete *.log", "/path/to/project", {
 	onFileFound: (data) => {
 		console.log("Found:", data.path);
 	},
@@ -596,16 +593,9 @@ const targets = await findTargetsWithEvents("delete *.log", "/path/to/project", 
 		console.log(`Scan complete. Found ${data.filesFound} files.`);
 	},
 });
-```
 
-#### `executeCleanupWithEvents(rulesOrDsl, baseDir, listeners): Promise<ExecutionResult>`
-
-Execute cleanup with event callbacks.
-
-```javascript
-import { executeCleanupWithEvents } from "dedust";
-
-const result = await executeCleanupWithEvents("delete *.log", "/path/to/project", {
+// Execute cleanup with event listeners
+const result = await executeCleanup("delete *.log", "/path/to/project", {
 	onFileFound: (data) => {
 		console.log("Found:", data.path);
 	},
@@ -615,6 +605,13 @@ const result = await executeCleanupWithEvents("delete *.log", "/path/to/project"
 	onError: (data) => {
 		console.error("Error:", data.error.message, "at", data.path);
 	},
+});
+
+// Combine with other options
+const result = await executeCleanup("delete *.log", "/path/to/project", {
+	ignore: [".git", "*.keep"],
+	skip: ["node_modules"],
+	onFileDeleted: (data) => console.log("Deleted:", data.path),
 });
 ```
 

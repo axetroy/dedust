@@ -1,4 +1,4 @@
-import { Rule } from './parser.js';
+import { Rule } from "./parser.js";
 
 /**
  * Check if a pattern is potentially dangerous
@@ -34,7 +34,7 @@ export function validateRules(rules: Rule[]): {
  * Validation error class
  */
 export class ValidationError extends Error {
-	name: 'ValidationError';
+	name: "ValidationError";
 	validationErrors: Array<{
 		rule: Rule;
 		error: string;

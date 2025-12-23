@@ -3,7 +3,7 @@ import assert from "node:assert";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-import { findTargetsWithEvents, executeCleanupWithEvents, Evaluator, parseRules } from "../src/index.js";
+import { findTargets, executeCleanup, Evaluator, parseRules } from "../src/index.js";
 import { createStructure as createStructureHelper } from "./helper.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -41,7 +41,7 @@ test("Events - file:found event", async () => {
 	const filesFound = [];
 	const dsl = "delete *.log";
 
-	await findTargetsWithEvents(dsl, testDir, {
+	await findTargets(dsl, testDir, {
 		onFileFound: (data) => {
 			filesFound.push(data.path);
 		},
@@ -63,7 +63,7 @@ test("Events - scan:start and scan:complete", async () => {
 
 	const dsl = "delete *.log";
 
-	await findTargetsWithEvents(dsl, testDir, {
+	await findTargets(dsl, testDir, {
 		onScanStart: (data) => {
 			scanStarted = true;
 			assert.strictEqual(data.baseDir, testDir);
@@ -94,7 +94,7 @@ test("Events - scan:directory", async () => {
 	const directoriesScanned = [];
 	const dsl = "delete *.log";
 
-	await findTargetsWithEvents(dsl, testDir, {
+	await findTargets(dsl, testDir, {
 		onScanDirectory: (data) => {
 			directoriesScanned.push(data.directory);
 		},
@@ -114,7 +114,7 @@ test("Events - file:deleted event", async () => {
 	const filesDeleted = [];
 	const dsl = "delete *.log";
 
-	await executeCleanupWithEvents(dsl, testDir, {
+	await executeCleanup(dsl, testDir, {
 		onFileDeleted: (data) => {
 			filesDeleted.push(data.path);
 			assert.strictEqual(typeof data.isDirectory, "boolean");
@@ -140,7 +140,7 @@ test("Events - error event during deletion", async () => {
 		fs.chmodSync(testDir, 0o444); // Make directory read-only
 	}
 
-	await executeCleanupWithEvents(dsl, testDir, {
+	await executeCleanup(dsl, testDir, {
 		onError: (data) => {
 			errors.push(data);
 			assert.strictEqual(data.phase, "deletion");
@@ -197,7 +197,7 @@ test("Events - all event types", async () => {
 
 	const dsl = "delete *.log";
 
-	await executeCleanupWithEvents(dsl, testDir, {
+	await executeCleanup(dsl, testDir, {
 		onScanStart: () => {
 			events.scanStart = true;
 		},

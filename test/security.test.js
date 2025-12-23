@@ -191,14 +191,17 @@ test("Security - Complex condition makes dangerous pattern safe", async () => {
 
 	// Should work fine with conditions and find files
 	assert.ok(targets.length > 0, "Should find files when conditions are met");
-	assert.ok(targets.some((t) => t.includes("file1.txt")), "Should find file1.txt");
+	assert.ok(
+		targets.some((t) => t.includes("file1.txt")),
+		"Should find file1.txt"
+	);
 });
 
 test("Security - Ignore rules are not validated", async () => {
 	createStructure({
 		"file1.txt": "content",
 		".git": {
-			"config": "git",
+			config: "git",
 		},
 	});
 
