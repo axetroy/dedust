@@ -310,7 +310,6 @@ export async function findTargetsWithEvents(rulesOrDsl, baseDirs, listeners = {}
  *   onFileDeleted: (data) => console.log('Deleted:', data.path),
  *   onError: (data) => console.error('Error:', data.error)
  * });
- * });
  * ```
  */
 export async function executeCleanupWithEvents(rulesOrDsl, baseDirs, listeners = {}, options = {}) {
