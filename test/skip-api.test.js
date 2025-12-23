@@ -146,6 +146,7 @@ test("Skip API - combining DSL skip with API skip", async () => {
 	`;
 	const targets = await findTargets(dsl, testDir, {
 		skip: [".git", "cache"],
+		skipValidation: true,
 	});
 
 	// All directories should be matched
@@ -268,6 +269,7 @@ test("Skip API - combining skip with ignore via API", async () => {
 	const targets = await findTargets(dsl, testDir, {
 		skip: ["node_modules"],
 		ignore: [".git"],
+		skipValidation: true,
 	});
 
 	// node_modules should be matched (skip allows it)
