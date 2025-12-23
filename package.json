@@ -5,8 +5,12 @@
     "description": "An elegant file cleanup tool.",
     "sideEffects": false,
     "files": [
-        "dist"
+        "dist",
+        "bin"
     ],
+    "bin": {
+        "dedust": "./bin/dedust.js"
+    },
     "type": "module",
     "main": "dist/cjs/index.cjs",
     "module": "dist/esm/index.mjs",
