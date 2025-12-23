@@ -129,7 +129,9 @@ export class Evaluator extends EventEmitter {
 			const RECURSIVE_SUFFIX = "/**";
 			if (pattern.endsWith(RECURSIVE_SUFFIX)) {
 				const dirPattern = pattern.slice(0, -RECURSIVE_SUFFIX.length);
-				if (minimatch(relativePath, dirPattern, { dot: true, matchBase: true })) {
+				// Create a temporary matcher for the dir pattern
+				const dirMatcher = new minimatch.Minimatch(dirPattern, { dot: true, matchBase: true });
+				if (dirMatcher.match(relativePath)) {
 					this.ignoreCache.set(filePath, true);
 					return true;
 				}
@@ -142,10 +144,11 @@ export class Evaluator extends EventEmitter {
 			}
 
 			// Also check if any parent directory matches
-			// Early termination: stop checking once we find a match
+			// Build paths incrementally to avoid repeated slice/join operations
+			let currentPath = "";
 			for (let i = 0; i < parts.length; i++) {
-				const partial = i === 0 ? parts[0] : parts.slice(0, i + 1).join(path.sep);
-				if (matcher.match(partial)) {
+				currentPath = i === 0 ? parts[0] : currentPath + path.sep + parts[i];
+				if (matcher.match(currentPath)) {
 					this.ignoreCache.set(filePath, true);
 					return true;
 				}
@@ -180,7 +183,9 @@ export class Evaluator extends EventEmitter {
 			const RECURSIVE_SUFFIX = "/**";
 			if (pattern.endsWith(RECURSIVE_SUFFIX)) {
 				const dirPattern = pattern.slice(0, -RECURSIVE_SUFFIX.length);
-				if (minimatch(relativePath, dirPattern, { dot: true, matchBase: true })) {
+				// Create a temporary matcher for the dir pattern
+				const dirMatcher = new minimatch.Minimatch(dirPattern, { dot: true, matchBase: true });
+				if (dirMatcher.match(relativePath)) {
 					this.skipCache.set(dirPath, true);
 					return true;
 				}
@@ -193,10 +198,11 @@ export class Evaluator extends EventEmitter {
 			}
 
 			// Also check if any parent directory matches
-			// Early termination: stop checking once we find a match
+			// Build paths incrementally to avoid repeated slice/join operations
+			let currentPath = "";
 			for (let i = 0; i < parts.length; i++) {
-				const partial = i === 0 ? parts[0] : parts.slice(0, i + 1).join(path.sep);
-				if (matcher.match(partial)) {
+				currentPath = i === 0 ? parts[0] : currentPath + path.sep + parts[i];
+				if (matcher.match(currentPath)) {
 					this.skipCache.set(dirPath, true);
 					return true;
 				}
