@@ -25,6 +25,7 @@ for (let i = 0; i < args.length; i++) {
 	} else if (arg === "--version" || arg === "-v") {
 		flags.version = true;
 	} else if (arg === "--dry-run" || arg === "-d") {
+		// Kept for backward compatibility - dry-run is now the default behavior
 		flags.dryRun = true;
 	} else if (arg === "--delete" || arg === "-D") {
 		flags.dryRun = false;

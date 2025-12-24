@@ -362,14 +362,14 @@ dedust --delete --skip-validation
 
 ### CLI Options
 
-| Option              | Alias | Description                                             |
-| ------------------- | ----- | ------------------------------------------------------- |
-| `--help`            | `-h`  | Show help message                                       |
-| `--version`         | `-v`  | Show version number                                     |
-| `--dry-run`         | `-d`  | Preview mode (default behavior)                         |
-| `--delete`          | `-D`  | Actually delete files (requires explicit confirmation)  |
-| `--config <file>`   | `-c`  | Specify config file (default: `dedust.rules`)           |
-| `--skip-validation` |       | Skip safety validation (use with caution)               |
+| Option              | Alias | Description                                                          |
+| ------------------- | ----- | -------------------------------------------------------------------- |
+| `--help`            | `-h`  | Show help message                                                    |
+| `--version`         | `-v`  | Show version number                                                  |
+| `--dry-run`         | `-d`  | Preview mode (default, kept for backward compatibility)              |
+| `--delete`          | `-D`  | Actually delete files (requires explicit confirmation)               |
+| `--config <file>`   | `-c`  | Specify config file (default: `dedust.rules`)                        |
+| `--skip-validation` |       | Skip safety validation (use with caution)                            |
 
 ### Example Workflows
 
