@@ -48,17 +48,17 @@ npm install -g dedust
 After global installation, you can run `dedust` from anywhere:
 
 ```bash
-# Clean current directory using dedust.rules
+# Preview what would be deleted (default behavior)
 dedust
 
-# Preview what would be deleted
-dedust --dry-run
+# Actually delete files
+dedust --delete
 
-# Clean specific directories
+# Preview specific directories
 dedust /path/to/project1 /path/to/project2
 
-# Use custom config file
-dedust --config my-rules.txt
+# Delete with custom config file
+dedust --delete --config my-rules.txt
 ```
 
 **When to use global vs local installation:**
@@ -69,7 +69,7 @@ dedust --config my-rules.txt
 You can also use `npx` to run `dedust` without installing it globally:
 
 ```bash
-npx dedust --dry-run
+npx dedust
 ```
 
 ## Quick Start
@@ -338,34 +338,38 @@ dedust --help
 # Show version
 dedust --version
 
-# Clean current directory (requires dedust.rules file)
+# Preview what would be deleted (default behavior)
 dedust
 
-# Preview what would be deleted (dry run)
-dedust --dry-run
+# Actually delete files
+dedust --delete
 
-# Clean specific directories
+# Preview specific directories
 dedust /path/to/project
 
-# Clean multiple directories
-dedust /path/to/project1 /path/to/project2 /path/to/project3
+# Delete in multiple directories
+dedust --delete /path/to/project1 /path/to/project2 /path/to/project3
 
 # Use a custom config file
 dedust --config my-cleanup.rules
 
+# Delete with custom config
+dedust --delete --config my-cleanup.rules
+
 # Skip safety validation (use with caution!)
-dedust --skip-validation
+dedust --delete --skip-validation
 ```
 
 ### CLI Options
 
-| Option              | Alias | Description                                             |
-| ------------------- | ----- | ------------------------------------------------------- |
-| `--help`            | `-h`  | Show help message                                       |
-| `--version`         | `-v`  | Show version number                                     |
-| `--dry-run`         | `-d`  | Preview what would be deleted without actually deleting |
-| `--config <file>`   | `-c`  | Specify config file (default: `dedust.rules`)           |
-| `--skip-validation` |       | Skip safety validation (use with caution)               |
+| Option              | Alias | Description                                                          |
+| ------------------- | ----- | -------------------------------------------------------------------- |
+| `--help`            | `-h`  | Show help message                                                    |
+| `--version`         | `-v`  | Show version number                                                  |
+| `--dry-run`         | `-d`  | Preview mode (default - this flag is optional)                       |
+| `--delete`          | `-D`  | Actually delete files (requires explicit confirmation)               |
+| `--config <file>`   | `-c`  | Specify config file (default: `dedust.rules`)                        |
+| `--skip-validation` |       | Skip safety validation (use with caution)                            |
 
 ### Example Workflows
 
@@ -386,17 +390,23 @@ delete dist when exists package.json
 delete **/*.log
 EOF
 
-# Preview what would be deleted
-dedust --dry-run
-
-# If the preview looks good, execute the cleanup
+# Preview what would be deleted (default behavior)
 dedust
 
-# Or use a different config file
-dedust --config production.rules --dry-run
+# If the preview looks good, execute the cleanup
+dedust --delete
 
-# Clean multiple workspaces at once
+# Preview with a different config file
+dedust --config production.rules
+
+# Delete with a different config file
+dedust --delete --config production.rules
+
+# Preview multiple workspaces at once
 dedust ~/workspace/project1 ~/workspace/project2 ~/workspace/project3
+
+# Delete in multiple workspaces
+dedust --delete ~/workspace/project1 ~/workspace/project2 ~/workspace/project3
 ```
 
 ### Using with npx (no global installation needed)
@@ -404,8 +414,11 @@ dedust ~/workspace/project1 ~/workspace/project2 ~/workspace/project3
 You can use `npx` to run `dedust` without installing it globally:
 
 ```bash
-# Run dedust directly
-npx dedust --dry-run
+# Preview what would be deleted (default behavior)
+npx dedust
+
+# Actually delete files
+npx dedust --delete
 
 # Specify a version
 npx dedust@latest --version
@@ -860,8 +873,8 @@ const result: ExecutionResult = await executeCleanup(rules, "/path");
     // API: Use skipValidation option
     await executeCleanup(dsl, baseDir, { skipValidation: true });
 
-    // CLI: Use --skip-validation flag
-    dedust --skip-validation
+    // CLI: Use --skip-validation flag with --delete
+    dedust --delete --skip-validation
     ```
 
 4. **Clear Error Messages** - When validation fails, you get helpful suggestions:
@@ -908,14 +921,14 @@ const result: ExecutionResult = await executeCleanup(rules, "/path");
     delete *.tmp
     ```
 
-3. **Test with --dry-run first:**
+3. **Preview before deleting:**
 
     ```bash
-    # Always preview before deleting
-    dedust --dry-run
+    # Preview what would be deleted (default behavior)
+    dedust
 
     # Then execute if results look correct
-    dedust
+    dedust --delete
     ```
 
 4. **Use specific patterns when possible:**
