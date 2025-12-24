@@ -7,7 +7,7 @@ import { executeCleanup, findTargets } from "../dist/esm/index.mjs";
 
 const args = process.argv.slice(2);
 const flags = {
-	dryRun: false,
+	dryRun: true,
 	configFile: "dedust.rules",
 	help: false,
 	version: false,
@@ -26,6 +26,8 @@ for (let i = 0; i < args.length; i++) {
 		flags.version = true;
 	} else if (arg === "--dry-run" || arg === "-d") {
 		flags.dryRun = true;
+	} else if (arg === "--delete" || arg === "-D") {
+		flags.dryRun = false;
 	} else if (arg === "--skip-validation") {
 		flags.skipValidation = true;
 	} else if (arg === "--config" || arg === "-c") {
@@ -55,25 +57,26 @@ Usage:
 Options:
   -h, --help              Show this help message
   -v, --version           Show version number
-  -d, --dry-run           Preview what would be deleted without actually deleting
+  -d, --dry-run           Preview mode (default behavior)
+  -D, --delete            Actually delete files (requires explicit confirmation)
   -c, --config <file>     Specify config file (default: dedust.rules)
   --skip-validation       Skip safety validation (use with caution)
 
 Examples:
-  # Clean current directory using dedust.rules
+  # Preview what would be deleted (default behavior)
   dedust
 
-  # Preview what would be deleted
-  dedust --dry-run
+  # Actually delete files (explicit)
+  dedust --delete
 
-  # Clean specific directories
+  # Preview specific directories
   dedust /path/to/project1 /path/to/project2
 
-  # Use custom config file
-  dedust --config my-rules.txt
+  # Delete with custom config file
+  dedust --delete --config my-rules.txt
 
-  # Dry run with custom config
-  dedust --dry-run --config custom.rules /path/to/project
+  # Preview with custom config
+  dedust --config custom.rules /path/to/project
 `);
 	process.exit(0);
 }
@@ -154,7 +157,7 @@ try {
 			console.log(`Total items that would be deleted: ${targets.length}`);
 
 			if (targets.length > 0) {
-				console.log("\nTo actually delete these files, run without --dry-run flag.");
+				console.log("\nTo actually delete these files, run with --delete flag.");
 			}
 		} else {
 			// Actually delete
