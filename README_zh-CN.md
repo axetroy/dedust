@@ -973,7 +973,7 @@ const result: ExecutionResult = await executeCleanup(rules, "/path");
 
 ## 许可证
 
-请参阅 LICENSE 文件
+SEE LICENSE IN LICENSE
 
 ## 致谢
 
