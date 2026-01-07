@@ -291,17 +291,10 @@ export async function cleanup(rulesOrDsl, baseDirs, options = {}) {
  * @returns {void}
  */
 
-// Simplified core API - unified cleanup function
+// Minimal public API - single cleanup function
 export default {
 	cleanup,
-	parseRules,
-	// Keep old functions for backward compatibility
-	findTargets,
-	executeCleanup,
 };
 
 // Export classes for advanced usage
 export { Tokenizer, Parser, Evaluator };
-
-// Export validation functions and error
-export { validateRules, validateRule, isDangerousPattern, ValidationError } from "./validator.js";

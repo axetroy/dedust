@@ -197,14 +197,10 @@ export function cleanup(rulesOrDsl: string | Rule[], baseDirs: string | string[]
 export function cleanup(rulesOrDsl: string | Rule[], baseDirs: string | string[], options: CleanupOptionsWithExecute & { execute: true }): Promise<ExecutionResult>;
 
 /**
- * Default export containing simplified core functions
+ * Default export containing minimal public API
  */
 declare const _default: {
 	cleanup: typeof cleanup;
-	parseRules: typeof parseRules;
-	// Keep old functions for backward compatibility
-	findTargets: typeof findTargets;
-	executeCleanup: typeof executeCleanup;
 };
 
 export default _default;
@@ -216,6 +212,3 @@ export type { Rule } from "./parser.js";
 export { Tokenizer } from "./tokenizer.js";
 export { Parser } from "./parser.js";
 export { Evaluator } from "./evaluator.js";
-
-// Export validation functions and error
-export { validateRules, validateRule, isDangerousPattern, ValidationError } from "./validator.js";
