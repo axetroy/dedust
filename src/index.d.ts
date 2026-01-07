@@ -172,4 +172,3 @@ export default _default;
 
 // Re-export essential types only
 export type { Rule } from "./parser.js";
-export type { CleanupOptions, ExecutionResult };
