@@ -69,7 +69,7 @@ test("Multiple directories - findTargets with single string (backward compatible
 	);
 
 	const dsl = "delete *.log";
-	const targets = await dedust(dsl, testDir1, { execute: true });
+	const targets = await dedust(dsl, testDir1, );
 
 	assert.strictEqual(targets.length, 1);
 	assert.ok(targets[0].endsWith("test.log"));
@@ -91,7 +91,7 @@ test("Multiple directories - executeCleanup with array", async () => {
 	);
 
 	const dsl = "delete *.log";
-	const result = await dedust(dsl, [testDir1, testDir2]);
+	const result = await dedust(dsl, [testDir1, testDir2], { execute: true });
 
 	assert.strictEqual(result.deleted.length, 2);
 	assert.strictEqual(result.errors.length, 0);
@@ -191,6 +191,7 @@ test("Multiple directories - executeCleanup with events", async () => {
 
 	const dsl = "delete *.log";
 	const result = await dedust(dsl, [testDir1, testDir2], {
+		execute: true,
 		onFileDeleted: (data) => {
 			filesDeleted.push(data.path);
 		},
@@ -204,7 +205,7 @@ test("Multiple directories - executeCleanup with events", async () => {
 
 test("Multiple directories - empty array", async () => {
 	const dsl = "delete *.log";
-	const targets = await dedust(dsl, [], { execute: true });
+	const targets = await dedust(dsl, [], );
 
 	assert.strictEqual(targets.length, 0);
 });
