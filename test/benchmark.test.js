@@ -244,7 +244,7 @@ test("Benchmark - execute with multiple files", async () => {
 	const { duration } = await measureTime(async () => {
 		const result = await dedust(dsl, testDir);
 		await result.execute();
-	}, "executeCleanup - delete 50 files");
+	}, "execute - delete 50 files");
 
 	assert.ok(duration < 2000, "Should complete in less than 2 seconds");
 });
@@ -271,7 +271,7 @@ test("Benchmark - execute with nested directories", async () => {
 	const { duration } = await measureTime(async () => {
 		const result = await dedust(dsl, testDir);
 		await result.execute();
-	}, "executeCleanup - nested directories");
+	}, "execute - nested directories");
 
 	assert.ok(duration < 2000, "Should complete in less than 2 seconds");
 });
