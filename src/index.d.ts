@@ -1,7 +1,64 @@
 import { Rule } from "./parser.js";
 
 /**
- * Options for cleanup operations (extends to include execute flag)
+ * Options for dedust operations
+ */
+export interface CleanupOptions {
+	/**
+	 * Patterns to ignore during cleanup (supports glob patterns)
+	 * @example ['.git', 'node_modules', '*.keep', 'important/**']
+	 */
+	ignore?: string[];
+	/**
+	 * Patterns to skip during traversal but allow matching (supports glob patterns)
+	 * @example ['node_modules', '.git', 'build*']
+	 */
+	skip?: string[];
+	/**
+	 * Skip safety validation of rules (use with caution)
+	 */
+	skipValidation?: boolean;
+	/**
+	 * Called when a file is found
+	 */
+	onFileFound?: (data: import("./evaluator.js").FileFoundEvent) => void;
+	/**
+	 * Called when a file is deleted
+	 */
+	onFileDeleted?: (data: import("./evaluator.js").FileDeletedEvent) => void;
+	/**
+	 * Called when an error occurs
+	 */
+	onError?: (data: import("./evaluator.js").ErrorEvent) => void;
+	/**
+	 * Called when scanning starts
+	 */
+	onScanStart?: (data: import("./evaluator.js").ScanStartEvent) => void;
+	/**
+	 * Called when scanning a directory
+	 */
+	onScanDirectory?: (data: import("./evaluator.js").ScanDirectoryEvent) => void;
+	/**
+	 * Called when scanning completes
+	 */
+	onScanComplete?: (data: import("./evaluator.js").ScanCompleteEvent) => void;
+}
+
+/**
+ * Result of executing cleanup
+ */
+export interface ExecutionResult {
+	/** Successfully deleted paths */
+	deleted: string[];
+	/** Errors encountered during deletion */
+	errors: Array<{
+		path: string;
+		error: Error;
+	}>;
+}
+
+/**
+ * Options for dedust operations (extends to include execute flag)
  */
 export interface CleanupOptionsWithExecute extends CleanupOptions {
 	/**

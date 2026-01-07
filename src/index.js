@@ -242,14 +242,14 @@ async function executeCleanup(rulesOrDsl, baseDirs, options = {}) {
 }
 
 /**
- * Unified cleanup function - finds or deletes files based on rules
+ * Unified dedust function - finds or deletes files based on rules
  * @param {string | Rule[]} rulesOrDsl - DSL text or parsed rules
  * @param {string | string[]} baseDirs - Base directory or directories to evaluate from
  * @param {CleanupOptions & {execute?: boolean}} [options] - Options including execute flag, ignore patterns, skip patterns, and optional event listeners
  * @returns {Promise<string[] | {deleted: string[], errors: Array<{path: string, error: Error}>}>} Array of file paths (dry run) or execution result
  * @example
  * ```js
- * import { cleanup } from 'dedust';
+ * import { dedust } from 'dedust';
  *
  * const dsl = `
  *   delete target when exists Cargo.toml
@@ -257,19 +257,19 @@ async function executeCleanup(rulesOrDsl, baseDirs, options = {}) {
  * `;
  *
  * // Dry run - find targets without deleting (default)
- * const targets = await cleanup(dsl, '/path/to/project');
+ * const targets = await dedust(dsl, '/path/to/project');
  * console.log('Would delete:', targets);
  *
  * // Execute - actually delete files
- * const result = await cleanup(dsl, '/path/to/project', { execute: true });
+ * const result = await dedust(dsl, '/path/to/project', { execute: true });
  * console.log('Deleted:', result.deleted);
  * console.log('Errors:', result.errors);
  *
  * // Multiple directories
- * const targets = await cleanup(dsl, ['/path/to/project1', '/path/to/project2']);
+ * const targets = await dedust(dsl, ['/path/to/project1', '/path/to/project2']);
  *
  * // With options
- * const result = await cleanup(dsl, '/path/to/project', {
+ * const result = await dedust(dsl, '/path/to/project', {
  *   execute: true,
  *   ignore: ['.git', '*.keep'],
  *   skip: ['node_modules'],
