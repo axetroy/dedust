@@ -195,7 +195,6 @@ export interface CleanupOptionsWithExecute extends CleanupOptions {
  */
 export function cleanup(rulesOrDsl: string | Rule[], baseDirs: string | string[], options?: CleanupOptionsWithExecute): Promise<string[]>;
 export function cleanup(rulesOrDsl: string | Rule[], baseDirs: string | string[], options: CleanupOptionsWithExecute & { execute: true }): Promise<ExecutionResult>;
-export function cleanup(rulesOrDsl: string | Rule[], baseDirs: string | string[], options?: CleanupOptionsWithExecute): Promise<string[] | ExecutionResult>;
 
 /**
  * Default export containing simplified core functions
