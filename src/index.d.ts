@@ -3,7 +3,7 @@ import { Rule } from "./parser.js";
 /**
  * Options for dedust operations
  */
-export interface CleanupOptions {
+export interface DedustOptions {
 	/**
 	 * Patterns to ignore during cleanup (supports glob patterns)
 	 * @example ['.git', 'node_modules', '*.keep', 'important/**']
@@ -85,32 +85,8 @@ export interface DedustResult {
  * @param baseDirs - Base directory or directories to evaluate from
  * @param options - Options including ignore patterns, skip patterns, and optional event listeners
  * @returns DedustResult object with targets and execute method
- * @example
- * ```js
- * import dedust from 'dedust';
- * // or
- * import { dedust } from 'dedust';
- *
- * const dsl = `
- *   delete target when exists Cargo.toml
- *   delete node_modules when exists package.json
- * `;
- *
- * // Scan files (dry mode - always default)
- * const result = await dedust(dsl, '/path/to/project');
- * console.log('Would delete:', result.targets);
- * console.log('Would delete:', result.files); // alias
- *
- * // Execute deletion
- * const executed = await result.execute();
- * console.log('Deleted:', executed.deleted);
- * console.log('Errors:', executed.errors);
- *
- * // Or use cleanup() alias
- * const executed = await result.cleanup();
- * ```
  */
-export function dedust(rulesOrDsl: string | Rule[], baseDirs: string | string[], options?: CleanupOptions): Promise<DedustResult>;
+export function dedust(rulesOrDsl: string | Rule[], baseDirs: string | string[], options?: DedustOptions): Promise<DedustResult>;
 
 /**
  * Default export - the dedust function

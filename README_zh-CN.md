@@ -446,7 +446,7 @@ import { dedust } from "dedust";
 **参数：**
 - `rulesOrDsl`: `string | Rule[]` - DSL 文本或已解析的规则
 - `baseDirs`: `string | string[]` - 要处理的基础目录
-- `options`: `CleanupOptions`（可选）- 配置选项
+- `options`: `DedustOptions`（可选）- 配置选项
 
 **返回值：**
 - `DedustResult` - 带有目标和执行方法的结果对象

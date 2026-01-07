@@ -6,14 +6,14 @@ import fs from "node:fs";
 
 /**
  * @typedef {import('./parser.js').Rule} Rule
- * @typedef {import('./index.js').CleanupOptions} CleanupOptions
+ * @typedef {import('./index.js').DedustOptions} DedustOptions
  */
 
 /**
  * Attach event listeners to an evaluator
  * @private
  * @param {Evaluator} evaluator - The evaluator instance
- * @param {CleanupOptions} options - Options containing event listeners
+ * @param {DedustOptions} options - Options containing event listeners
  */
 function attachEventListeners(evaluator, options) {
 	if (options.onFileFound) {
@@ -39,7 +39,7 @@ function attachEventListeners(evaluator, options) {
 /**
  * Check if options has any event handlers
  * @private
- * @param {CleanupOptions} options - Options object
+ * @param {DedustOptions} options - Options object
  * @returns {boolean} True if any listeners are defined
  */
 function hasListeners(options) {
@@ -68,7 +68,7 @@ function parseRules(input) {
  * Evaluate rules and find targets to delete (dry run)
  * @param {string | Rule[]} rulesOrDsl - DSL text or parsed rules
  * @param {string | string[]} baseDirs - Base directory or directories to evaluate from
- * @param {CleanupOptions} [options] - Options including ignore patterns, skip patterns, and optional event listeners
+ * @param {DedustOptions} [options] - Options including ignore patterns, skip patterns, and optional event listeners
  * @returns {Promise<string[]>} Array of file paths that would be deleted
  */
 async function findTargets(rulesOrDsl, baseDirs, options = {}) {

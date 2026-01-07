@@ -446,7 +446,7 @@ import { dedust } from "dedust";
 **Parameters:**
 - `rulesOrDsl`: `string | Rule[]` - DSL text or parsed rules
 - `baseDirs`: `string | string[]` - Base directory or directories to process
-- `options`: `CleanupOptions` (optional) - Configuration options
+- `options`: `DedustOptions` (optional) - Configuration options
 
 **Returns:**
 - `DedustResult` - Result object with targets and execute method
