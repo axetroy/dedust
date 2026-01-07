@@ -70,7 +70,7 @@ function hasListeners(options) {
  * console.log(rules);
  * ```
  */
-export function parseRules(input) {
+function parseRules(input) {
 	const tokens = tokenize(input);
 	return parse(tokens);
 }
@@ -117,7 +117,7 @@ export function parseRules(input) {
  * console.log('Would delete:', targets);
  * ```
  */
-export async function findTargets(rulesOrDsl, baseDirs, options = {}) {
+async function findTargets(rulesOrDsl, baseDirs, options = {}) {
 	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
 	const dirs = Array.isArray(baseDirs) ? baseDirs : [baseDirs];
 	const ignorePatterns = options.ignore || [];
@@ -199,7 +199,7 @@ export async function findTargets(rulesOrDsl, baseDirs, options = {}) {
  * console.log('Errors:', result.errors);
  * ```
  */
-export async function executeCleanup(rulesOrDsl, baseDirs, options = {}) {
+async function executeCleanup(rulesOrDsl, baseDirs, options = {}) {
 	const rules = typeof rulesOrDsl === "string" ? parseRules(rulesOrDsl) : rulesOrDsl;
 	const dirs = Array.isArray(baseDirs) ? baseDirs : [baseDirs];
 	const ignorePatterns = options.ignore || [];
