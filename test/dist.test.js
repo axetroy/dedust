@@ -10,9 +10,6 @@ const __dirname = path.dirname(__filename);
 
 const rootDir = path.join(__dirname, "..");
 
-before(async () => {
-	await exec("yarnpkg", ["build"]);
-});
 
 function exec(cmd, args = [], options = {}) {
 	return new Promise((resolve, reject) => {
