@@ -28,7 +28,7 @@ function exec(cmd, args = [], options = {}) {
 			if (code === 0) {
 				resolve(data);
 			} else {
-				reject(new Error(`yarnpkg process exited with code ${code}`));
+				reject(new Error(`'${cmd}' '${args.join(" ")}' process exited with code ${code}`));
 			}
 		});
 	});
