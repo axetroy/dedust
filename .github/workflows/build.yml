@@ -21,7 +21,10 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install
-        run: npm i
+        run: yarnpkg
+
+      - name: Build
+        run: yarnpkg build
 
       - name: Test
-        run: npm run test
+        run: yarnpkg test

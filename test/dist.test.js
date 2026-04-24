@@ -20,7 +20,7 @@ before(() => {
 test("test esm output", () => {
 	const targetDir = path.join(rootDir, "fixtures", "esm");
 
-	execSync("yarn", { cwd: targetDir, stdio: "inherit" });
+	execSync("yarnpkg", { cwd: targetDir, stdio: "inherit" });
 
 	const output = execSync("npm run test --no-color", {
 		cwd: targetDir,
@@ -37,7 +37,7 @@ test("test esm output", () => {
 test("test cjs output", () => {
 	const targetDir = path.join(rootDir, "fixtures", "cjs");
 
-	execSync("yarn", { cwd: targetDir, stdio: "inherit" });
+	execSync("yarnpkg", { cwd: targetDir, stdio: "inherit" });
 
 	const output = execSync("npm run test --no-color", {
 		cwd: targetDir,
