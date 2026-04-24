@@ -23,6 +23,35 @@ See DSL design specifications at [spec.md](./spec.md)
 -   🔧 **TypeScript** - Full TypeScript type definitions included
 -   📦 **Dual module support** - Works with both ESM and CommonJS
 
+## How It Works
+
+dedust processes your cleanup rules through a four-stage pipeline:
+
+```
+DSL text  ──►  Tokenizer  ──►  Parser  ──►  Evaluator  ──►  targets
+                                               │
+                                          Validator (safety check)
+```
+
+1. **Tokenize** — The `Tokenizer` reads the DSL text character-by-character and produces a flat stream of typed tokens (keywords such as `delete` / `when` / `exists`, identifier/glob patterns, quoted strings, and comments).
+
+2. **Parse** — The `Parser` consumes the token stream and builds a structured list of rules. Each rule captures:
+   - **action** — `delete`, `ignore`, or `skip`
+   - **target** — a glob pattern (e.g. `node_modules`, `*.log`)
+   - **condition** — an optional tree of `exists` predicates combined with `and` / `not`, each carrying an optional location modifier (`here`, `parent`, `parents`, `child`, `children`, `sibling`)
+
+3. **Validate** — Before scanning, the built-in `Validator` inspects every `delete` rule and rejects dangerously broad patterns (e.g. `delete *` or `delete **/*`) that have no condition. Pass `skipValidation: true` to bypass this check when you know what you are doing.
+
+4. **Evaluate** — The `Evaluator` walks the directory tree from `baseDir` and, for every directory it visits:
+   - **Ignores** directories that match `ignore` rules — they are not traversed and cannot be matched by any delete rule.
+   - **Skips** directories that match `skip` rules — they are not traversed, but the directory itself can still be matched by an explicit delete rule.
+   - For every `delete` rule, evaluates the optional condition by checking `exists` predicates in the appropriate spatial context (current dir, parent dir, ancestor dirs, child dirs, sibling dirs, etc.).
+   - When the condition holds (or there is no condition), resolves the target glob relative to the current directory and adds every match to the candidate set.
+
+5. **Execute** — Calling `.execute()` on the returned `DedustResult` object sorts the collected paths deepest-first (so children are removed before parents) and then deletes each one using Node.js `fs` APIs. Any deletion errors are captured and returned in the `errors` array rather than thrown.
+
+> **Default dry-run:** `dedust()` always performs steps 1–4 first and returns the candidate list in `result.targets`. Nothing is deleted until you explicitly call `result.execute()`.
+
 ## Installation
 
 ### As a Library (for programmatic use)

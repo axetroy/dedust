@@ -23,6 +23,35 @@
 -   🔧 **TypeScript** - 包含完整的 TypeScript 类型定义
 -   📦 **双模块支持** - 同时支持 ESM 和 CommonJS
 
+## 工作原理
+
+dedust 通过四个阶段的流水线来处理你的清理规则：
+
+```
+DSL 文本  ──►  Tokenizer（词法分析）  ──►  Parser（语法解析）  ──►  Evaluator（规则求值）  ──►  目标列表
+                                                                        │
+                                                                  Validator（安全校验）
+```
+
+1. **词法分析（Tokenize）** — `Tokenizer` 逐字符读取 DSL 文本，生成一组带类型的 token 流（关键字如 `delete` / `when` / `exists`、标识符/glob 模式、带引号的字符串及注释）。
+
+2. **语法解析（Parse）** — `Parser` 消费 token 流，构建结构化的规则列表。每条规则包含：
+   - **action（动作）** — `delete`、`ignore` 或 `skip`
+   - **target（目标）** — glob 模式（如 `node_modules`、`*.log`）
+   - **condition（条件）** — 可选的谓词树，由 `exists` 谓词通过 `and` / `not` 组合而成，每个谓词还可携带位置修饰词（`here`、`parent`、`parents`、`child`、`children`、`sibling`）
+
+3. **安全校验（Validate）** — 扫描开始前，内置的 `Validator` 会检查每条 `delete` 规则，拒绝没有条件的危险广域模式（如 `delete *` 或 `delete **/*`）。若明确知晓风险，可传入 `skipValidation: true` 跳过此检查。
+
+4. **规则求值（Evaluate）** — `Evaluator` 从 `baseDir` 开始递归遍历目录树，对每个访问到的目录执行以下操作：
+   - **忽略**匹配 `ignore` 规则的目录——既不遍历，也不允许任何 delete 规则匹配。
+   - **跳过**匹配 `skip` 规则的目录——不进入遍历，但目录本身仍可被显式 delete 规则匹配。
+   - 对每条 `delete` 规则，在对应的空间上下文（当前目录、父目录、祖先目录、子目录、同级目录等）中求值可选条件，检查 `exists` 谓词是否成立。
+   - 条件成立（或没有条件）时，将目标 glob 相对于当前目录展开，把所有匹配路径加入候选集合。
+
+5. **执行删除（Execute）** — 调用返回的 `DedustResult` 对象上的 `.execute()` 方法后，会先将候选路径按深度从深到浅排序（确保先删除子节点，再删除父节点），然后通过 Node.js `fs` API 逐一删除。删除过程中的任何错误都会被捕获并放入 `errors` 数组返回，而不是抛出异常。
+
+> **默认试运行：** `dedust()` 始终先执行步骤 1–4，将候选列表存放在 `result.targets` 中。只有显式调用 `result.execute()` 后才会真正删除任何文件。
+
 ## 安装
 
 ### 作为库使用（用于编程）
